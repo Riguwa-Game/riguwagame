@@ -17,6 +17,14 @@ export const config = {
   doodleGateAsc: process.env.DOODLE_GATE_ASC ?? '',
   doodleGateSepolia: process.env.DOODLE_GATE_SEPOLIA ?? '',
   wsPort: Number(process.env.WS_PORT ?? 8920),
+  /// Bind to loopback only. nginx terminates TLS and proxies to us, so there is never a reason to
+  /// listen on a public interface - and the VPS has no firewall, so binding 0.0.0.0 would put this
+  /// straight on the internet.
+  wsHost: process.env.WS_HOST ?? '127.0.0.1',
+  /// Origins allowed to open a run socket. A browser sends Origin on every WebSocket handshake,
+  /// so this keeps other sites from driving the monitor with our attestor key.
+  allowedOrigins: (process.env.ALLOWED_ORIGINS ?? 'https://riguwa.xyz,https://www.riguwa.xyz,http://127.0.0.1:8910,http://localhost:8910')
+    .split(',').map((o) => o.trim()).filter(Boolean),
   /// How long to wait for Creditcoin's attestors to cover a Sepolia block.
   /// Measured on CC3 testnet: attestation trails the Sepolia head by roughly 20-40 minutes,
   /// so the SDK's default timeout is far too short. Err generous; the relayer is idle while

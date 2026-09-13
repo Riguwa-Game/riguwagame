@@ -189,7 +189,98 @@ Then in the browser at `https://riguwa.xyz`: the console must be clean — in pa
 project-id error**, which is the loud one this build prints if the id or the registered domain is
 wrong. Connect a wallet, stake, play, die, and confirm the payout settles.
 
-## 8. Keep it alive
+## 8. Hardening
+
+The box was audited before writing this. What was already right, and what was not.
+
+### Already correct — do not undo it
+
+| | |
+| --- | --- |
+| `PasswordAuthentication no` | Keys only. **1,641 failed SSH attempts in 24 h and not one can succeed.** |
+| `PermitRootLogin no` | Root cannot log in over SSH at all. |
+| Docker services on `127.0.0.1` | `fugugent-prod-*` are not reachable from the internet. |
+| `unattended-upgrades` enabled | Security updates install themselves. |
+
+### What ink-monitor does about its own exposure
+
+The monitor binds **`127.0.0.1:8920`**, not `0.0.0.0`. nginx terminates TLS and proxies in, so there
+is no reason to listen publicly — and with no firewall on the box, binding `0.0.0.0` would put a
+process holding a signing key straight on the internet.
+
+It also checks the `Origin` header on every handshake. A browser always sends it, so this stops
+another site from driving the monitor — and its attestor key — from a victim's browser.
+
+```
+http://127.0.0.1:8910    ALLOWED
+https://riguwa.xyz       ALLOWED
+https://evil.example.com REFUSED (403)
+```
+
+Both are set in `.env` (`WS_HOST`, `ALLOWED_ORIGINS`). **If you ever set `WS_HOST=0.0.0.0`, the
+monitor is on the public internet with no firewall in front of it.**
+
+### Worth fixing on the box
+
+Ordered by how much they matter. None touches the other projects.
+
+**1. Firewall.** `ufw` is inactive. Nothing is exposed today because only 22/80/443 listen — but
+that is luck, not policy. One misconfigured service and it is on the internet.
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp comment 'ssh'
+sudo ufw allow 80/tcp comment 'http'
+sudo ufw allow 443/tcp comment 'https'
+sudo ufw --force enable
+sudo ufw status verbose
+```
+
+> Enable it **from a second SSH session you keep open**, so a mistake in the rules does not lock you
+> out of your own box. Docker writes its own iptables rules and bypasses ufw for published ports —
+> another reason every container here stays bound to `127.0.0.1`.
+
+**2. fail2ban.** 1,641 attempts a day cannot succeed, but they burn CPU and bury real events in the
+logs.
+
+```bash
+sudo apt install -y fail2ban
+sudo tee /etc/fail2ban/jail.local >/dev/null <<'JAIL'
+[sshd]
+enabled = true
+maxretry = 5
+findtime = 10m
+bantime = 1h
+JAIL
+sudo systemctl enable --now fail2ban
+sudo fail2ban-client status sshd
+```
+
+**3. 198 pending security updates.** `unattended-upgrades` is enabled yet 198 are outstanding —
+usually because they need a reboot, or are held back.
+
+```bash
+sudo apt update && sudo apt upgrade -y
+[ -f /var/run/reboot-required ] && cat /var/run/reboot-required
+```
+
+> **Reboot with care** — other people's services live here. Check what comes back up:
+> `systemctl list-units --state=failed`.
+
+### The attestor key
+
+The real asset on this box is `MONITOR_PRIVATE_KEY`.
+
+- It is an **attestor key, never an owner key**. It can sign a `RunResult` and submit proofs. It
+  cannot move pool funds, cannot upgrade a contract, cannot change a cap.
+- Keep only what it needs for gas. Not a treasury.
+- `chmod 600 /opt/ink-monitor/.env`, owned by `ubuntu`.
+- The systemd unit runs with `ProtectSystem=strict`, `ProtectHome=read-only`, `NoNewPrivileges`.
+- If it leaks: `escrow.setAttestor(old,false)` then `setAttestor(new,true)`. Two transactions and
+  the old key is inert.
+
+## 9. Keep it alive
 
 | Thing | Why | Check |
 | --- | --- | --- |

@@ -14,8 +14,22 @@ export function startMonitor(): WebSocketServer {
   const domain = runResultDomain(config.creditcoinChainId, config.arenaEscrow as Hex);
   const wallet = walletClient();
 
-  const wss = new WebSocketServer({ port: config.wsPort });
-  console.log(`[monitor] listening on :${config.wsPort} as ${account.address}`);
+  const wss = new WebSocketServer({
+    port: config.wsPort,
+    host: config.wsHost,
+    maxPayload: 16 * 1024,
+    // A browser always sends Origin on a WebSocket handshake. Refusing unknown ones keeps another
+    // site from driving this monitor - and its attestor key - from a victim's browser.
+    verifyClient: ({ origin }, done) => {
+      if (!origin || config.allowedOrigins.includes(origin)) return done(true);
+      console.warn(`[monitor] refused a socket from origin ${origin}`);
+      return done(false, 403, 'origin not allowed');
+    },
+  });
+  console.log(
+    `[monitor] listening on ${config.wsHost}:${config.wsPort} as ${account.address}\n` +
+      `[monitor] allowed origins: ${config.allowedOrigins.join(', ')}`,
+  );
 
   wss.on('connection', (ws: WebSocket) => {
     let session: RunSession | null = null;
