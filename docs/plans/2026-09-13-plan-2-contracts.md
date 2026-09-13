@@ -13,6 +13,11 @@
 ## Global Constraints
 
 - **`solc_version = "0.8.30"`, `evm_version = "shanghai"`, `via_ir = true`, `optimizer_runs = 200`.** Creditcoin's EVM is Shanghai; several contracts hit stack-too-deep without IR.
+- **OpenZeppelin 5.7 specifics, verified against the vendored source:**
+  - `UUPSUpgradeable` is **stateless and has no initializer**. Do not call `__UUPSUpgradeable_init()` — it does not exist. The upgradeable package merely re-exports the one from `openzeppelin-contracts`.
+  - `ReentrancyGuardUpgradeable` **no longer exists**. Use `@openzeppelin/contracts/utils/ReentrancyGuard.sol` and call no initializer: its guard tests `value == ENTERED (2)`, and an uninitialised slot is `0`, so it behaves correctly behind a proxy. Its constructor is only a gas optimisation.
+  - `ReentrancyGuardTransient` needs EIP-1153 and therefore Cancun — unusable on Shanghai.
+  - Initializers that **do** exist: `__Ownable_init(address)`, `__EIP712_init(string,string)`, `__ERC20_init(string,string)`.
 - **Every Creditcoin contract is UUPS-upgradeable** with ERC-7201 namespaced storage and a `_disableInitializers()` constructor.
 - **Every Creditcoin contract must be verified on Blockscout** at `https://creditcoin-testnet.blockscout.com`.
 - **Test first.** Write the failing test, run it, watch it fail, then implement. Never write a contract before its test.
