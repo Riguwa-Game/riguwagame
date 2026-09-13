@@ -50,6 +50,7 @@ contract ArenaEscrow is
     error NotAttestor(address signer);
     error DuplicateSigner(address signer);
     error ThresholdNotMet(uint256 got, uint256 needed);
+    error RunNotExpired();
 
     uint32 public constant BPS_DENOMINATOR = 10_000;
 
@@ -283,6 +284,32 @@ contract ArenaEscrow is
         if (count < $.threshold) revert ThresholdNotMet(count, $.threshold);
     }
 
+    /// @notice Return a stake after the settlement window closes. Callable by anyone, so a
+    ///         monitor outage can never trap a player's funds.
+    function abandonRun(bytes32 runId) external nonReentrant {
+        EscrowStorage storage $ = _s();
+        Run storage run = $.runs[runId];
+
+        if (run.state != RunState.Active) revert RunNotActive();
+        if (block.timestamp <= run.deadline) revert RunNotExpired();
+
+        address player = run.player;
+        address token = run.token;
+        uint256 stake = run.stake;
+        uint256 reserved = run.reserved;
+
+        run.state = RunState.Abandoned;
+        delete $.activeRun[player];
+
+        Pool storage p = $.pools[token];
+        p.reserved -= reserved;
+        p.free += reserved;
+        p.activeStake -= stake;
+
+        emit RunAbandoned(runId, player, stake);
+        _pay(token, player, stake);
+    }
+
     // ---------------- admin ----------------
 
     function setMaxStake(address token, uint256 cap) external onlyOwner {
@@ -296,6 +323,14 @@ contract ArenaEscrow is
     function setThreshold(uint256 newThreshold) external onlyOwner {
         if (newThreshold == 0) revert BadTiers();
         _s().threshold = newThreshold;
+    }
+
+    function setRunTtl(uint64 ttl) external onlyOwner {
+        _s().runTtl = ttl;
+    }
+
+    function setSeasonRegistry(address registry) external onlyOwner {
+        _s().seasonRegistry = ISeasonRegistry(registry);
     }
 
     function setAsc(address asc_) external onlyOwner {
