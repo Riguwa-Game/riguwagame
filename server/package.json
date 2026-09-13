@@ -1,0 +1,27 @@
+{
+  "name": "ink-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Run monitor and Attestcoin relayer for Inkstake Arena",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server/src/index.js",
+    "dev": "node --experimental-strip-types src/index.ts",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gluwa/usc-sdk": "0.18.0",
+    "@wagmi/core": "^3.6.5",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.15.0",
+    "viem": "^2.56.5",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.9.2"
+  }
+}
