@@ -36,22 +36,29 @@ export function startMonitor(): WebSocketServer {
       console.log(
         `[monitor] signed run ${result.runId.slice(0, 10)}… wave ${result.waveReached} score ${result.score}`,
       );
-      const payload = JSON.stringify({
-        t: 'signed',
-        result: {
-          runId: result.runId,
-          player: result.player,
-          waveReached: result.waveReached,
-          score: result.score.toString(),
-          endedAt: result.endedAt.toString(),
-        },
-        signature,
-      });
-      if (ws.readyState === ws.OPEN) {
-        ws.send(payload);
-        return;
-      }
-      // The client vanished. Submit it ourselves so the stake is not left to time out.
+
+      const wire = {
+        runId: result.runId,
+        player: result.player,
+        waveReached: result.waveReached,
+        score: result.score.toString(),
+        endedAt: result.endedAt.toString(),
+      };
+
+      const say = (msg: object) => {
+        if (ws.readyState === ws.OPEN) {
+          try {
+            ws.send(JSON.stringify(msg));
+          } catch {
+            /* the socket went away mid-send */
+          }
+        }
+      };
+
+      // The monitor always submits. The player already paid to stake; asking them to sign a
+      // second time just to RECEIVE their payout is a poor trade, and a declined signature used
+      // to leave the stake sitting until the TTL expired.
+      say({ t: 'settling', signature });
       try {
         const hash = await wallet.writeContract({
           address: config.arenaEscrow as Hex,
@@ -59,9 +66,13 @@ export function startMonitor(): WebSocketServer {
           functionName: 'settleRun',
           args: [result, [signature]],
         });
-        console.log(`[monitor] client gone, settled on their behalf: ${hash}`);
+        console.log(`[monitor] settled run ${result.runId.slice(0, 10)}… in ${hash}`);
+        say({ t: 'settled', hash });
       } catch (err) {
-        console.error('[monitor] self-settle failed:', err instanceof Error ? err.message : err);
+        const reason = err instanceof Error ? err.message : String(err);
+        console.error('[monitor] settle failed:', reason);
+        // Hand the signature over so the player can submit it themselves as a fallback.
+        say({ t: 'settleFailed', reason, signature, result: wire });
       }
     };
 

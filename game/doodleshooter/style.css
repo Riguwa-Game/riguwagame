@@ -230,3 +230,7 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .stake .balances img { transform: rotate(-3deg); }
 .stake .hint.warn { color: var(--red); opacity: 1; }
 .stake button:disabled { opacity: .4; cursor: default; }
+.stake .payout { display: flex; flex-direction: column; align-items: center; line-height: 1.05; font-size: 46px; }
+.stake .payout span { font-size: 19px; opacity: .75; margin-top: 6px; letter-spacing: .5px; }
+.stake .payout.win { color: var(--ink); }
+.stake .payout.loss { color: var(--red); }

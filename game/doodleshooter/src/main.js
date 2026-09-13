@@ -47,7 +47,7 @@ const ctx = { scene: R.scene, camera: R.camera, world, level, nav, input, hud, e
 // ---------------- persistent bits ----------------
 let best = Number(localStorage.getItem('doodle_best') || 0);
 // staked-run state; `active` false means this is an ordinary unstaked solo run
-let stake = { token: NATIVE, amount: '1', runId: null, seed: null, active: false, reported: false, lastTx: null, error: null };
+let stake = { token: NATIVE, amount: '1', runId: null, seed: null, active: false, reported: false, lastTx: null, error: null, staked: 0n, settling: false };
 // An on-chain run that outlived the page - a refresh mid-run would otherwise lock the player out
 // until the 2-hour TTL, because startRun reverts with RunAlreadyActive while one is Active.
 let pendingRun = null;
@@ -733,9 +733,9 @@ function wireStake() {
     try {
       const { runId, seed } = pendingRun;
       await monitor.openMonitor({ runId, player: wallet.currentAddress() });
-      monitor.onSigned(onRunSigned);
-      monitor.onError((reason) => { stake.error = reason; });
-      stake = { ...stake, runId, seed, active: true, reported: false, lastTx: null, error: null };
+      wireSettlementCallbacks();
+      stake = { ...stake, token: pendingRun.token, runId, seed, active: true, reported: false,
+                lastTx: null, error: null, staked: pendingRun.stake, settling: false };
       pendingRun = null;
       game.pendingSeed = seed;
       begin();
@@ -784,9 +784,9 @@ function wireStake() {
       const { runId, seed } = await arena.startStakedRun({ token: stake.token, amount: stake.amount });
       say('staked · connecting to the monitor…');
       await monitor.openMonitor({ runId, player: wallet.currentAddress() });
-      monitor.onSigned(onRunSigned);
-      monitor.onError((reason) => { stake.error = reason; });
-      stake = { ...stake, runId, seed, active: true, reported: false, lastTx: null, error: null };
+      wireSettlementCallbacks();
+      stake = { ...stake, runId, seed, active: true, reported: false, lastTx: null, error: null,
+                staked: arena.toUnits(stake.token, String(stake.amount)), settling: false };
       game.pendingSeed = seed;          // the run is seeded by the chain
       begin();
     } catch (err) {
@@ -794,27 +794,52 @@ function wireStake() {
     }
   });
 }
-async function onRunSigned(result, signature) {
-  try {
-    stake.lastTx = await arena.submitSettlement(
-      { ...result, score: BigInt(result.score), endedAt: BigInt(result.endedAt) },
-      signature,
-    );
-  } catch (err) {
-    stake.error = err.shortMessage || err.message || String(err);
-  }
-  await Promise.all([refreshPendingRun(), refreshStakeCtx()]);
-  if (game.state === 'dead') showDead();
+// The monitor signs AND submits, so the player never signs a second time just to be paid.
+function wireSettlementCallbacks() {
+  monitor.onSettling(() => { stake.settling = true; if (game.state === 'dead') showDead(); });
+  monitor.onSettled(async (hash) => {
+    stake.settling = false; stake.lastTx = hash;
+    await Promise.all([refreshPendingRun(), refreshStakeCtx()]);
+    if (game.state === 'dead') showDead();
+  });
+  monitor.onSettleFailed(async (reason, signature, result) => {
+    stake.settling = false;
+    // Fall back to the player submitting it themselves rather than stranding the stake.
+    try {
+      stake.lastTx = await arena.submitSettlement(
+        { ...result, score: BigInt(result.score), endedAt: BigInt(result.endedAt) },
+        signature,
+      );
+    } catch (err) {
+      stake.error = reason || err.shortMessage || err.message || String(err);
+    }
+    await Promise.all([refreshPendingRun(), refreshStakeCtx()]);
+    if (game.state === 'dead') showDead();
+  });
+  monitor.onError((reason) => { stake.error = reason; if (game.state === 'dead') showDead(); });
 }
 function stakeResultHTML() {
   if (!stake.active) return '';
-  const mult = game.wave >= 15 ? '3x' : game.wave >= 10 ? '2x' : game.wave >= 5 ? '1.5x' : null;
-  if (stake.error) return `<div class="stake"><b>settlement failed</b><span class="hint">${esc(stake.error)}</span></div>`;
-  if (stake.lastTx) {
-    return `<div class="stake"><b>${mult ? 'YOU WON ' + mult + ' OF YOUR STAKE' : 'stake lost · reach wave 5 next time'}</b>
-      <span class="hint"><a href="${CHAIN.explorer}/tx/${stake.lastTx}" target="_blank" rel="noopener">view on Blockscout</a></span></div>`;
-  }
-  return '<div class="stake"><b>settling on-chain…</b><span class="hint">waiting for the monitor signature</span></div>';
+  const sym = stake.token === NATIVE ? 'tCTC' : 'USDT';
+  const bps = game.wave >= 15 ? 30000n : game.wave >= 10 ? 20000n : game.wave >= 5 ? 15000n : 0n;
+  const mult = bps === 30000n ? '3x' : bps === 20000n ? '2x' : bps === 15000n ? '1.5x' : null;
+  const payout = (stake.staked * bps) / 10000n;
+  const staked = fmtAmount(stake.token, stake.staked);
+
+  // Lead with the number. The settlement state is a footnote underneath, not the headline.
+  const head = mult
+    ? `<div class="payout win">+${fmtAmount(stake.token, payout)} ${sym}
+         <span>wave ${game.wave} · ${mult} of your ${staked} ${sym} stake</span></div>`
+    : `<div class="payout loss">−${staked} ${sym}
+         <span>wave ${game.wave} · reach wave 5 for 1.5x</span></div>`;
+
+  let foot;
+  if (stake.error) foot = `<span class="hint warn">settlement failed · ${esc(stake.error)}</span>`;
+  else if (stake.lastTx) foot = `<span class="hint">settled on-chain · <a href="${CHAIN.explorer}/tx/${stake.lastTx}" target="_blank" rel="noopener">view on Blockscout</a></span>`;
+  else if (stake.settling) foot = '<span class="hint">settling on-chain…</span>';
+  else foot = '<span class="hint">waiting for the monitor…</span>';
+
+  return `<div class="stake">${head}${foot}</div>`;
 }
 function onlineHTML() {
   return `<h1>PLAY ONLINE</h1><h2>free for all · first to ${FFA_TARGET} · up to 10 players</h2>
@@ -893,7 +918,10 @@ function showPause() {
 function showClickToPlay() { hud.showScreen(`<h1>MATCH ON</h1><h2>free for all · first to ${FFA_TARGET}</h2><div class="go">CLICK ANYWHERE (or press ${hud.key('confirm')}) TO PLAY</div>`); }
 function showDead() {
   hud.setGameplayVisible(false); const nb = game.score > best; if (nb) { best = game.score; localStorage.setItem('doodle_best', String(best)); }
-  if (stake.active && !stake.reported) { stake.reported = true; monitor.reportDeath(game.wave, game.score); }
+  if (stake.active && !stake.reported) {
+    stake.reported = true;
+    monitor.reportDeath(game.wave, game.score);
+  }
   hud.showScreen(`<h1>ERASED</h1>${stakeResultHTML()}<div class="stats">you survived <b>${game.wave}</b> wave${game.wave === 1 ? '' : 's'} · <b>${game.kills}</b> kills · score <b>${game.score}</b>${nb ? ' · <b>NEW BEST</b>' : ` · best ${best}`}</div>${menuBtnHTML()}<div class="go">stake again from the main menu to play another run</div>`);
   wireMenuBtn();
 }

@@ -2,10 +2,13 @@
 // Deliberately tiny: wave starts, kills, damage and death. Never 60 Hz state.
 import { MONITOR_WS } from '../chain/config.js';
 
-let ws = null, ready = false, queue = [], signedCb = null, errorCb = null;
+let ws = null, ready = false, queue = [], errorCb = null;
+const cbs = { settling: null, settled: null, settleFailed: null };
 
 export const isConnected = () => ready;
-export function onSigned(cb) { signedCb = cb; }
+export function onSettling(cb) { cbs.settling = cb; }
+export function onSettled(cb) { cbs.settled = cb; }
+export function onSettleFailed(cb) { cbs.settleFailed = cb; }
 export function onError(cb) { errorCb = cb; }
 
 export function openMonitor({ runId, player }) {
@@ -24,8 +27,12 @@ export function openMonitor({ runId, player }) {
         for (const m of queue) ws.send(JSON.stringify(m));
         queue = [];
         done(resolve, msg);
-      } else if (msg.t === 'signed') {
-        if (signedCb) signedCb(msg.result, msg.signature);
+      } else if (msg.t === 'settling') {
+        if (cbs.settling) cbs.settling(msg.signature);
+      } else if (msg.t === 'settled') {
+        if (cbs.settled) cbs.settled(msg.hash);
+      } else if (msg.t === 'settleFailed') {
+        if (cbs.settleFailed) cbs.settleFailed(msg.reason, msg.signature, msg.result);
       } else if (msg.t === 'error') {
         ready = false;
         if (errorCb) errorCb(msg.reason);
