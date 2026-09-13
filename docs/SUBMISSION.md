@@ -393,8 +393,11 @@ https://github.com/Riguwa-Game/riguwagame
 ## Project Deck or Whitepaper (PDF URL)
 
 ```
-https://github.com/Riguwa-Game/riguwagame/blob/main/docs/riguwa-deck.pdf
+https://drive.google.com/drive/folders/1vyOKha7zbm2J3wQFadUlcidtnHI3PK7f?usp=sharing
 ```
+
+Deck cadangan yang dibuat di repo ini, kalau sewaktu-waktu dibutuhkan:
+`https://github.com/Riguwa-Game/riguwagame/blob/main/docs/riguwa-deck.pdf`
 
 ## Prototype Demo Video URL
 
