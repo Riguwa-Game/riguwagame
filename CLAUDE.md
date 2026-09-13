@@ -53,6 +53,15 @@ attestor `0xFd2ade73561E4700654C9c21932Dda8495e58665` (signs `RunResult` only, n
 
 Full table with explorer links in `contracts/DEPLOYMENT.md`.
 
+| Service | Where | Host |
+| --- | --- | --- |
+| The game | `https://riguwa.xyz` | Vercel, project `inkstake-arena` |
+| `ink-monitor` | `wss://monitor.riguwa.xyz` | VPS `43.159.63.76`, loopback `:8920` behind nginx |
+
+The Vercel hostname is a deployment address, not an entry point: it is not registered with Reown
+and the monitor's origin allowlist rejects it. One canonical origin. Deployment steps, and the
+rules for sharing that VPS with unrelated projects, are in `docs/DEPLOYMENT.md`.
+
 ## Key facts
 
 | Thing | Value |

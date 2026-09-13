@@ -46,11 +46,12 @@ established; we just add one more of the same shape.
 
 Records at Hostinger, which keeps the `dns-parking.com` nameservers.
 
-| Action | Type | Name | Value | TTL |
-| --- | --- | --- | --- | --- |
-| **edit** | A | `@` | `76.76.21.21` | 300 |
-| **keep** | A | `monitor` | `43.159.63.76` | 300 |
-| **delete** if present | CNAME | `www` | — | — |
+| Type | Name | Value | TTL |
+| --- | --- | --- | --- |
+| A | `@` | `76.76.21.21` | 300 |
+| A | `monitor` | `43.159.63.76` | 300 |
+
+There is no `www` record and no `api` record. Those are the only two entries in the zone.
 
 `76.76.21.21` is Vercel's apex address. No `www`, and no `api` subdomain — the monitor is the only
 VPS-hosted service and it lives at `monitor.riguwa.xyz`.
@@ -199,6 +200,7 @@ wrong. Connect a wallet, stake, play, die, and confirm the payout settles.
 | `PermitRootLogin no` | Root cannot log in over SSH at all. |
 | Docker services on `127.0.0.1` | `fugugent-prod-*` are not reachable from the internet. |
 | `unattended-upgrades` enabled | Security updates install themselves. |
+| **Fully patched** | 259 packages, kernel 6.8.0-139. See below for how that was done without taking the other projects down. |
 | **`ufw` active** | `deny incoming`; 22/80/443 only. Enabled from a second SSH session kept open, then SSH survival confirmed before that session was closed. |
 | **`fail2ban` active** | `sshd` jail, `maxretry 5`, `bantime 1h`. |
 | **`ink-monitor` on `127.0.0.1:8920`** | nginx terminates TLS and proxies in. Never public. |
@@ -211,18 +213,35 @@ thing standing between a signing key and the world.
 > Docker writes its own iptables rules and bypasses ufw for published ports — another reason every
 > container here stays bound to `127.0.0.1`.
 
-### Still open — your call
+### The 259-package upgrade, and how it was made safe
 
-**198 pending security updates.** `unattended-upgrades` is on, yet 198 are outstanding: they are
-held back because applying them restarts `nginx`, `openssh` and `systemd`, and the kernel ones need
-a reboot. **Every one of those touches the other projects on this box**, which is why this was left
-for you rather than done unattended.
+198 security updates were outstanding — `libssl`, `openssh`, `nginx`, `systemd`, and a kernel
+22 weeks behind (6.8.0-101 → 6.8.0-139). All 259 are applied and the box is rebooted.
 
-```bash
-sudo apt update && sudo apt upgrade -y
-[ -f /var/run/reboot-required ] && cat /var/run/reboot-required
-systemctl list-units --state=failed      # check what did not come back
-```
+On a box running other people's work, the packages were never the risk. **A 22-week uptime is.**
+Anything started by hand rather than by systemd or Docker had been alive only because nothing had
+ever restarted it, and a reboot would have deleted it silently. So the order was:
+
+1. **Audit what actually survives a reboot**, before touching apt. Map every listening port to its
+   parent unit; check every container's restart policy. Everything here was either an enabled
+   systemd unit or an `unless-stopped` container — the reboot was only safe *because* that came
+   back clean. (One stray tmux session exists, `claude-bot`, sitting at a Claude Code trust prompt
+   since 14 July and doing nothing; the real bot is `claude-bot.service`.)
+2. **Simulate first.** `apt-get -s full-upgrade` → 285 installs, **0 removals**. A removal would
+   have meant stopping.
+3. **`--force-confold`.** Keep every existing config file. Other projects' nginx and sshd
+   customisations survive the upgrade untouched; `diff -rq` against a pre-upgrade copy of
+   `/etc/nginx` confirmed it afterwards.
+4. **Run it detached**, under `systemd-run`, not in the SSH session. An SSH drop mid-`dpkg` leaves
+   a half-configured package database; this cannot.
+5. `full-upgrade`, not `upgrade` — the kernel meta-package needs to pull a *new* package, and plain
+   `upgrade` holds it back. The old kernel stays in `/boot` as a fallback.
+
+Result: reboot took ~30 s, **0 failed units**, all four containers healthy, every port from the
+pre-upgrade snapshot listening again, ufw and fail2ban active, 0 packages still upgradable.
+`9router` takes ~22 s to bind :20128 after boot — it is a Next.js app, so do not call it dead early.
+
+Backups of what an upgrade could have clobbered are in `/root/preupgrade-2026-09-13/`.
 
 ### The attestor key
 
