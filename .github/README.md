@@ -2,7 +2,7 @@
 
 <img src="../game/doodleshooter/public/logo.png" alt="Riguwa — a hand-drawn capital R in heavy black outline with hatched shading" width="128">
 
-# Inkstake Arena
+# Riguwa
 
 ### A ballpoint-doodle survival shooter where the reward is real — and the chain proves you earned it before it pays.
 
@@ -50,7 +50,7 @@ have to trust with the answer.
 
 ---
 
-## What Inkstake Arena does
+## What Riguwa does
 
 The game is a finished first-person survival shooter, drawn in blue ballpoint on lined notebook
 paper and rendered **entirely in code** — no models, no textures, no sound files. Every outline,

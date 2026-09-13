@@ -20,7 +20,7 @@ export const modal = createAppKit({
   defaultNetwork: creditcoinTestnet,
   projectId: REOWN_PROJECT_ID,
   metadata: {
-    name: 'Doodle District - Inkstake Arena',
+    name: 'Riguwa - Doodle District',
     description: 'A ballpoint-doodle survival shooter with staked runs on Creditcoin',
     url: origin,
     // The app's own mark. This is what a wallet shows next to the connection request, so it must

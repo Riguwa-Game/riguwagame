@@ -1,4 +1,4 @@
-# BUIDL submission: Inkstake Arena
+# BUIDL submission: Riguwa
 
 Paste the section below into the **Details** field of the DoraHacks BUIDL form. It is written in
 Markdown, which that editor accepts. Every image is an absolute `raw.githubusercontent.com` URL, so
@@ -9,9 +9,9 @@ Everything here is checked against the live deployment. No em dashes, per house 
 ---
 ---
 
-![Inkstake Arena](https://raw.githubusercontent.com/Riguwa-Game/riguwagame/main/docs/images/gameplay.jpg)
+![Riguwa](https://raw.githubusercontent.com/Riguwa-Game/riguwagame/main/docs/images/gameplay.jpg)
 
-# Inkstake Arena
+# Riguwa
 
 **A ballpoint-doodle survival shooter where the reward is real, and the chain proves you earned it
 before it pays.**
@@ -43,7 +43,7 @@ Web3 games put value on-chain. They do not put **the reason you earned it** on-c
 
 So the asset is trustless and the claim behind it is not. That gap is the whole problem.
 
-## 2. What Inkstake Arena does
+## 2. What Riguwa does
 
 The game is a finished first-person survival shooter, drawn in blue ballpoint on lined notebook
 paper and rendered **entirely in code**. No models, no textures, no sound files. Every outline,
