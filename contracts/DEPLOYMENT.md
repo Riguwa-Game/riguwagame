@@ -68,14 +68,28 @@ curl -s https://creditcoin-testnet.blockscout.com/api/v2/addresses/<addr> | jq .
 
 | Setting | Value |
 | --- | --- |
-| Max stake, native | 100 tCTC |
+| Max stake, native | 10 tCTC |
 | Max stake, USDT | 100 USDT (6 decimals) |
 | Payout tiers | wave 5 → 1.5x, 10 → 2x, 15+ → 3x |
 | Run TTL | 2 hours |
 | Attestor threshold | 1 (Phase 1) |
 | Cross-chain rate | 100 USDT per 1e18 of source value |
 | Max credit per query | 1,000 USDT |
-| Reward pool seeded | 300 tCTC + 100,000 USDT |
+| Reward pool | 2,000 tCTC + 100,000 USDT |
+
+### Keep the pool ahead of the cap
+
+`startRun` reserves `stake x 3` before it accepts a stake, so the pool must hold at least
+`maxStake x 3` free or the advertised cap is a lie and the run reverts with `PoolTooSmall` — which
+a wallet reports as an unhelpful "internal error".
+
+At 10 tCTC max and 2,000 free the pool backs 66 concurrent max-size runs. Both are owner settings,
+no upgrade needed:
+
+```bash
+cast send $ARENA_ESCROW "setMaxStake(address,uint256)" 0x0...0 10000000000000000000 --rpc-url ...
+cast send $ARENA_ESCROW "fundPool(address,uint256)" 0x0...0 <wei> --value <wei> --rpc-url ...
+```
 
 ## Post-deployment checklist
 
