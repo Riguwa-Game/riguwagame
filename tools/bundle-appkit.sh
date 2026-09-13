@@ -28,7 +28,7 @@ export { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 export { defineChain } from '@reown/appkit/networks';
 export {
   getAccount, watchAccount, getChainId, switchChain,
-  readContract, writeContract, waitForTransactionReceipt, getBalance,
+  readContract, writeContract, simulateContract, waitForTransactionReceipt, getBalance,
 } from '@wagmi/core';
 export {
   parseEther, parseUnits, formatEther, formatUnits, decodeEventLog, parseAbi,

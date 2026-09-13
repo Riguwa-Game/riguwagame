@@ -51,6 +51,14 @@ let stake = { token: NATIVE, amount: '1', runId: null, seed: null, active: false
 // An on-chain run that outlived the page - a refresh mid-run would otherwise lock the player out
 // until the 2-hour TTL, because startRun reverts with RunAlreadyActive while one is Active.
 let pendingRun = null;
+let stakeCtx = null;   // balances, pool and caps for both currencies
+
+async function refreshStakeCtx() {
+  const addr = wallet.currentAddress();
+  stakeCtx = null;
+  if (!addr) return;
+  try { stakeCtx = await arena.readStakeContext(addr); } catch { /* RPC hiccup */ }
+}
 
 async function refreshPendingRun() {
   const addr = wallet.currentAddress();
@@ -64,7 +72,15 @@ async function refreshPendingRun() {
   } catch { /* RPC hiccup; the stake button will surface any real problem */ }
 }
 
-wallet.onAccountChange(async () => { await refreshPendingRun(); if (game.state === 'start') showStart(); });
+wallet.onAccountChange(async () => {
+  await Promise.all([refreshPendingRun(), refreshStakeCtx()]);
+  if (game.state === 'start') showStart();
+});
+// short numbers: 7648.9614 -> 7648.96, 0.05 -> 0.05
+const fmtAmount = (token, raw) => {
+  const n = Number(arena.fromUnits(token, raw));
+  return n >= 1000 ? n.toFixed(0) : n >= 1 ? n.toFixed(2) : n.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+};
 let musicWanted = localStorage.getItem('doodle_music') !== '0';
 let checkpoint = Number(localStorage.getItem('doodle_checkpoint') || 0);
 let myName = (localStorage.getItem('doodle_name') || '').slice(0, 14) || 'doodle' + Math.floor(Math.random() * 90 + 10);
@@ -673,18 +689,34 @@ function stakeHTML() {
     </div>`;
   }
   const native = stake.token === NATIVE;
+  const c = stakeCtx && stakeCtx[stake.token];
+  const bal = (tok) => (stakeCtx ? fmtAmount(tok, stakeCtx[tok].balance) : '…');
+  // the real ceiling: the contract cap, what the pool can back at 3x, and what you hold
+  const max = c ? fmtAmount(stake.token, arena.effectiveMax(c)) : '…';
+  const sym = native ? 'tCTC' : 'USDT';
+  const poolLine = c
+    ? `pool holds ${fmtAmount(stake.token, c.pool.free)} ${sym} · backs a stake up to ${fmtAmount(stake.token, c.pool.free / 3n)} ${sym}`
+    : 'reading the pool…';
+  const over = c && Number(stake.amount) > Number(arena.fromUnits(stake.token, arena.effectiveMax(c)));
   return `<div class="stake online" id="stake">
     <div class="row"><span>wallet</span><b>${esc(wallet.shortAddress(addr))}</b>
-      <button type="button" class="alt" id="walletBtn">manage</button></div>
+      <button type="button" class="alt" id="walletBtn">manage</button>
+      <button type="button" class="alt" id="refreshBalBtn">refresh</button></div>
+    <div class="row balances">
+      <span><img src="${TOKEN_LOGOS.ctc}" alt="" width="17" height="17"> <b>${bal(NATIVE)}</b> tCTC</span>
+      <span><img src="${TOKEN_LOGOS.usdt}" alt="" width="17" height="17"> <b>${bal(ADDRESSES.usdt)}</b> USDT</span>
+    </div>
     <div class="row">
       <button type="button" class="mapbtn${native ? ' on' : ''}" data-token="${NATIVE}"><img src="${TOKEN_LOGOS.ctc}" alt="" width="20" height="20">tCTC</button>
       <button type="button" class="mapbtn${native ? '' : ' on'}" data-token="${ADDRESSES.usdt}"><img src="${TOKEN_LOGOS.usdt}" alt="" width="20" height="20">USDT</button>
-      <input type="number" id="stakeAmount" min="0" max="100" step="0.1" value="${esc(stake.amount)}">
-      <span class="hint">max 100</span></div>
-    <div class="row"><button type="button" class="big" id="stakedBtn">PLAY STAKED RUN</button>
+      <input type="number" id="stakeAmount" min="0" max="${max}" step="0.1" value="${esc(stake.amount)}">
+      <button type="button" class="alt" id="maxBtn">max</button>
+      <span class="hint${over ? ' warn' : ''}">max ${max} ${sym}</span></div>
+    <div class="hint">${poolLine}</div>
+    <div class="row"><button type="button" class="big" id="stakedBtn"${over ? ' disabled' : ''}>PLAY STAKED RUN</button>
       <button type="button" class="alt" id="faucetBtn">get USDT</button></div>
     <div class="hint">wave 5 pays 1.5x · wave 10 pays 2x · wave 15 pays 3x · below wave 5 the stake is lost</div>
-    <div class="status" id="stakeStatus"></div>
+    <div class="status" id="stakeStatus">${over ? esc(`that is more than the ${max} ${sym} this pool can back right now`) : ''}</div>
   </div>`;
 }
 function wireStake() {
@@ -721,11 +753,30 @@ function wireStake() {
     const b = e.target.closest('.mapbtn[data-token]');
     if (b) { stake.token = b.dataset.token; showStart(); }
   });
-  if (q('stakeAmount')) q('stakeAmount').addEventListener('input', (e) => { stake.amount = e.target.value; });
+  if (q('stakeAmount')) q('stakeAmount').addEventListener('input', (e) => {
+    stake.amount = e.target.value;
+    const c = stakeCtx && stakeCtx[stake.token];
+    if (!c) return;
+    const over = Number(stake.amount) > Number(arena.fromUnits(stake.token, arena.effectiveMax(c)));
+    const btn = q('stakedBtn'); if (btn) btn.disabled = over;
+    say(over ? `that is more than the ${fmtAmount(stake.token, arena.effectiveMax(c))} this pool can back right now` : '');
+  });
+  if (q('maxBtn')) q('maxBtn').addEventListener('click', () => {
+    const c = stakeCtx && stakeCtx[stake.token];
+    if (c) { stake.amount = fmtAmount(stake.token, arena.effectiveMax(c)); showStart(); }
+  });
+  if (q('refreshBalBtn')) q('refreshBalBtn').addEventListener('click', async () => {
+    say('reading the chain…');
+    await Promise.all([refreshStakeCtx(), refreshPendingRun()]);
+    showStart();
+  });
   if (q('faucetBtn')) q('faucetBtn').addEventListener('click', async () => {
     say('claiming USDT…');
-    try { await arena.claimFaucet(); say('1,000 USDT sent to your wallet'); }
-    catch (err) { say(err.shortMessage || err.message); }
+    try {
+      await arena.claimFaucet();
+      await refreshStakeCtx();
+      showStart();
+    } catch (err) { say(err.shortMessage || err.message); }
   });
   if (q('stakedBtn')) q('stakedBtn').addEventListener('click', async () => {
     say('confirm the stake in your wallet…');
@@ -752,7 +803,7 @@ async function onRunSigned(result, signature) {
   } catch (err) {
     stake.error = err.shortMessage || err.message || String(err);
   }
-  await refreshPendingRun();
+  await Promise.all([refreshPendingRun(), refreshStakeCtx()]);
   if (game.state === 'dead') showDead();
 }
 function stakeResultHTML() {

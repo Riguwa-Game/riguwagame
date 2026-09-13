@@ -225,3 +225,8 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .stake .mapbtn img { display: block; }
 .stake .mapbtn.on img { filter: brightness(1.6) saturate(.4); }
 .stake a { color: var(--red); }
+.stake .balances { gap: 18px; font-size: 19px; opacity: .9; }
+.stake .balances span { display: inline-flex; align-items: center; gap: 6px; }
+.stake .balances img { transform: rotate(-3deg); }
+.stake .hint.warn { color: var(--red); opacity: 1; }
+.stake button:disabled { opacity: .4; cursor: default; }
