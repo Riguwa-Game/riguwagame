@@ -4,7 +4,17 @@ Foundry project. Four UUPS-upgradeable contracts on Creditcoin Testnet and one p
 Ethereum Sepolia. OpenZeppelin v5.7.0 is vendored in `lib/` (previously git submodules, now
 committed directly so a plain clone works).
 
-Contracts are implemented in Plan 2 — see `docs/plans/2026-09-13-plan-2-contracts.md`.
+**Deployed and verified 2026-09-13.** Full table with Blockscout links in `DEPLOYMENT.md`.
+
+| Contract | Chain | Proxy |
+| --- | --- | --- |
+| `ArenaEscrow` | Creditcoin | `0xD63CbB36D1d25f44c653Ac5c6990B6B219f92Ee7` |
+| `DoodleGateASC` | Creditcoin | `0xd6565056853e4627f26B4bB4c1AEF7e9248f09dF` |
+| `USDT` | Creditcoin | `0x47dcAB80A108d6048059562AFF7d76aB3cbFA5B1` |
+| `SeasonRegistry` | Creditcoin | `0xc588f37d165dd2B80AD95532aC5a8a975C732050` |
+| `DoodleGate` | Sepolia | `0x56CeD9fD5E49C1Aba1371D7aDe383DD16da76484` |
+
+Attestor (`ink-monitor`): `0xFd2ade73561E4700654C9c21932Dda8495e58665` — signs `RunResult` only, never an owner.
 
 ## Planned contracts
 
