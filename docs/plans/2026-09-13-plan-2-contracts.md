@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **`solc_version = "0.8.30"`, `evm_version = "shanghai"`, `via_ir = true`, `optimizer_runs = 200`.** Creditcoin's EVM is Shanghai; several contracts hit stack-too-deep without IR.
+- **`solc_version = "0.8.30"`, `evm_version = "cancun"`, `via_ir = true`, `optimizer_runs = 200`.** IR avoids stack-too-deep. **Cancun, not Shanghai**: OZ 5.7's `Math.sol` pulls in `Bytes.sol`, which emits `MCOPY` and will not compile under Shanghai. Creditcoin was probed directly and supports `PUSH0`, `MCOPY` and `TSTORE`/`TLOAD`, but rejects `BLOBBASEFEE` — so never read `block.blobbasefee`. The probe and its results are recorded in `contracts/CLAUDE.md`. (Gluwa's examples pin Shanghai because they also pin OZ 5.1.)
 - **OpenZeppelin 5.7 specifics, verified against the vendored source:**
   - `UUPSUpgradeable` is **stateless and has no initializer**. Do not call `__UUPSUpgradeable_init()` — it does not exist. The upgradeable package merely re-exports the one from `openzeppelin-contracts`.
   - `ReentrancyGuardUpgradeable` **no longer exists**. Use `@openzeppelin/contracts/utils/ReentrancyGuard.sol` and call no initializer: its guard tests `value == ENTERED (2)`, and an uninitialised slot is `0`, so it behaves correctly behind a proxy. Its constructor is only a gas optimisation.
