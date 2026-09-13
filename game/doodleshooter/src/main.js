@@ -15,6 +15,10 @@ import { Net } from './net.js';
 import { HUD, CONTROLS_HTML } from './hud.js';
 import { audio } from './audio.js';
 import { rand, choose, clamp, random, setSeed } from './util.js';
+import * as wallet from './chain/wallet.js';
+import * as arena from './chain/arena.js';
+import * as monitor from './net/monitor.js';
+import { NATIVE, ADDRESSES, CHAIN, TOKEN_LOGOS } from './chain/config.js';
 
 const canvas = document.getElementById('c');
 const R = new InkRenderer(canvas);
@@ -42,6 +46,8 @@ const ctx = { scene: R.scene, camera: R.camera, world, level, nav, input, hud, e
 
 // ---------------- persistent bits ----------------
 let best = Number(localStorage.getItem('doodle_best') || 0);
+// staked-run state; `active` false means this is an ordinary unstaked solo run
+let stake = { token: NATIVE, amount: '1', runId: null, seed: null, active: false, reported: false, lastTx: null, error: null };
 let musicWanted = localStorage.getItem('doodle_music') !== '0';
 let checkpoint = Number(localStorage.getItem('doodle_checkpoint') || 0);
 let myName = (localStorage.getItem('doodle_name') || '').slice(0, 14) || 'doodle' + Math.floor(Math.random() * 90 + 10);
@@ -227,6 +233,7 @@ const tips = () => [
 const bossFor = (n) => BOSSES[(Math.floor(n / 5) - 1) % BOSSES.length];
 const enemyName = (t) => ({ boss: 'THE DOODLER', eraser: 'THE ERASER', inkblot: 'THE INKBLOT' })[t] || t.toUpperCase();
 function startWave(n) {
+  if (stake.active) monitor.reportWave(n);
   game.wave = n; game.queue = []; game.spawnT = 2; game.intermission = 0; game.boss = null; hud.setBoss(null, null);
   const boss = n > 0 && n % 5 === 0;
   const allowed = boss || n < 4 ? 1 : n < 6 ? 3 : MODIFIERS.length; const mod = MODIFIERS[Math.floor(random() * allowed)];
@@ -282,6 +289,7 @@ function updateWaves(dt) {
   hud.setWave(game.wave, enemies.alive + game.queue.length);
 }
 enemies.onKill = (e, info, over) => {
+  if (stake.active) monitor.reportKill(game.wave, e.T.name);
   game.kills++; game.combo++; game.comboT = 3.5;
   let label = e.T.name, pts = e.T.score;
   if (info.crit) { label = 'HEADSHOT'; pts += 60; }
@@ -628,7 +636,88 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 function mainHTML() {
   return `<h1>DOODLE DISTRICT</h1><h2>a scribbled survival shooter</h2>
     <div class="mainbtns"><button type="button" class="start" id="soloBtn">START<i>solo · survive the waves</i></button><button type="button" id="onlineBtn">PLAY ONLINE<i>free for all · up to 10 players</i></button></div>
-    ${mapHTML(mapKey, true)}${CONTROLS_HTML}${settingsHTML()}${checkpointHTML()}${best ? `<div class="beststat">best score: ${best}</div>` : ''}`;
+    ${stakeHTML()}${mapHTML(mapKey, true)}${CONTROLS_HTML}${settingsHTML()}${checkpointHTML()}${best ? `<div class="beststat">best score: ${best}</div>` : ''}`;
+}
+function stakeHTML() {
+  const addr = wallet.currentAddress();
+  if (!addr) {
+    return `<div class="stake" id="stake">
+      <button type="button" class="big" id="connectBtn">CONNECT WALLET<i>stake tCTC or USDT · win up to 3x</i></button>
+      <div class="tokens"><img src="${TOKEN_LOGOS.ctc}" alt="Creditcoin" width="26" height="26"><img src="${TOKEN_LOGOS.usdt}" alt="USDT" width="26" height="26"></div>
+      <div class="status" id="stakeStatus"></div>
+    </div>`;
+  }
+  const native = stake.token === NATIVE;
+  return `<div class="stake" id="stake">
+    <div class="row"><span>wallet</span><b>${esc(wallet.shortAddress(addr))}</b>
+      <span class="hint">${CHAIN.name}</span>
+      <button type="button" class="alt" id="walletBtn">manage</button></div>
+    <div class="row"><span>stake</span>
+      <button type="button" class="tokenbtn${native ? ' on' : ''}" data-token="${NATIVE}"><img src="${TOKEN_LOGOS.ctc}" alt="" width="18" height="18">tCTC</button>
+      <button type="button" class="tokenbtn${native ? '' : ' on'}" data-token="${ADDRESSES.usdt}"><img src="${TOKEN_LOGOS.usdt}" alt="" width="18" height="18">USDT</button>
+      <input type="number" id="stakeAmount" min="0" max="100" step="0.1" value="${esc(stake.amount)}">
+      <span class="hint">max 100</span></div>
+    <div class="row"><button type="button" class="big" id="stakedBtn">PLAY STAKED RUN</button>
+      <button type="button" class="alt" id="faucetBtn">get USDT</button></div>
+    <div class="hint">wave 5 pays 1.5x · wave 10 pays 2x · wave 15 pays 3x · below wave 5 the stake is lost</div>
+    <div class="status" id="stakeStatus"></div>
+  </div>`;
+}
+function wireStake() {
+  const box = hud.el.panel.querySelector('#stake'); if (!box) return;
+  box.addEventListener('click', (e) => e.stopPropagation());
+  box.addEventListener('keydown', (e) => e.stopPropagation());
+  const q = (id) => box.querySelector('#' + id);
+  const say = (t) => { const el = q('stakeStatus'); if (el) el.textContent = t; };
+
+  if (q('connectBtn')) q('connectBtn').addEventListener('click', () => wallet.openWallet());
+  if (q('walletBtn')) q('walletBtn').addEventListener('click', () => wallet.openWallet());
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('.tokenbtn');
+    if (b) { stake.token = b.dataset.token; showStart(); }
+  });
+  if (q('stakeAmount')) q('stakeAmount').addEventListener('input', (e) => { stake.amount = e.target.value; });
+  if (q('faucetBtn')) q('faucetBtn').addEventListener('click', async () => {
+    say('claiming USDT…');
+    try { await arena.claimFaucet(); say('1,000 USDT sent to your wallet'); }
+    catch (err) { say(err.shortMessage || err.message); }
+  });
+  if (q('stakedBtn')) q('stakedBtn').addEventListener('click', async () => {
+    say('confirm the stake in your wallet…');
+    try {
+      const { runId, seed } = await arena.startStakedRun({ token: stake.token, amount: stake.amount });
+      say('staked · connecting to the monitor…');
+      await monitor.openMonitor({ runId, player: wallet.currentAddress() });
+      monitor.onSigned(onRunSigned);
+      monitor.onError((reason) => { stake.error = reason; });
+      stake = { ...stake, runId, seed, active: true, reported: false, lastTx: null, error: null };
+      game.pendingSeed = seed;          // the run is seeded by the chain
+      begin();
+    } catch (err) {
+      say(err.shortMessage || err.message || String(err));
+    }
+  });
+}
+async function onRunSigned(result, signature) {
+  try {
+    stake.lastTx = await arena.submitSettlement(
+      { ...result, score: BigInt(result.score), endedAt: BigInt(result.endedAt) },
+      signature,
+    );
+  } catch (err) {
+    stake.error = err.shortMessage || err.message || String(err);
+  }
+  if (game.state === 'dead') showDead();
+}
+function stakeResultHTML() {
+  if (!stake.active) return '';
+  const mult = game.wave >= 15 ? '3x' : game.wave >= 10 ? '2x' : game.wave >= 5 ? '1.5x' : null;
+  if (stake.error) return `<div class="stake"><b>settlement failed</b><div class="hint">${esc(stake.error)}</div></div>`;
+  if (stake.lastTx) {
+    return `<div class="stake"><b>${mult ? 'you won ' + mult + ' of your stake' : 'stake lost · reach wave 5 next time'}</b>
+      <div class="hint"><a href="${CHAIN.explorer}/tx/${stake.lastTx}" target="_blank" rel="noopener">view on Blockscout</a></div></div>`;
+  }
+  return '<div class="stake"><b>settling on-chain…</b><div class="hint">waiting for the monitor signature</div></div>';
 }
 function onlineHTML() {
   return `<h1>PLAY ONLINE</h1><h2>free for all · first to ${FFA_TARGET} · up to 10 players</h2>
@@ -693,7 +782,7 @@ function showStart() {
   hud.showScreen(html);
   const p = hud.el.panel;
   if (screen === 'main') {
-    wireSettings(); wireCheckpoints((w) => beginAtWave(w)); wireMap((k) => { mapKey = k; localStorage.setItem('doodle_map', k); showStart(); });
+    wireSettings(); wireStake(); wireCheckpoints((w) => beginAtWave(w)); wireMap((k) => { mapKey = k; localStorage.setItem('doodle_map', k); showStart(); });
     p.querySelector('#soloBtn').addEventListener('click', (e) => { e.stopPropagation(); begin(); });
     p.querySelector('#onlineBtn').addEventListener('click', (e) => { e.stopPropagation(); screen = 'online'; showStart(); });
   } else wireOnline();
@@ -709,12 +798,16 @@ function showPause() {
 function showClickToPlay() { hud.showScreen(`<h1>MATCH ON</h1><h2>free for all · first to ${FFA_TARGET}</h2><div class="go">CLICK ANYWHERE (or press ${hud.key('confirm')}) TO PLAY</div>`); }
 function showDead() {
   hud.setGameplayVisible(false); const nb = game.score > best; if (nb) { best = game.score; localStorage.setItem('doodle_best', String(best)); }
-  hud.showScreen(`<h1>ERASED</h1><div class="stats">you survived <b>${game.wave}</b> wave${game.wave === 1 ? '' : 's'} · <b>${game.kills}</b> kills · score <b>${game.score}</b>${nb ? ' · <b>NEW BEST</b>' : ` · best ${best}`}</div>${checkpointHTML()}${menuBtnHTML()}<div class="go">CLICK (or press ${hud.key('confirm')}) TO DRAW AGAIN</div>`);
+  if (stake.active && !stake.reported) { stake.reported = true; monitor.reportDeath(game.wave, game.score); }
+  hud.showScreen(`<h1>ERASED</h1>${stakeResultHTML()}<div class="stats">you survived <b>${game.wave}</b> wave${game.wave === 1 ? '' : 's'} · <b>${game.kills}</b> kills · score <b>${game.score}</b>${nb ? ' · <b>NEW BEST</b>' : ` · best ${best}`}</div>${checkpointHTML()}${menuBtnHTML()}<div class="go">CLICK (or press ${hud.key('confirm')}) TO DRAW AGAIN</div>`);
   wireCheckpoints((w) => beginAtWave(w)); wireMenuBtn();
 }
 function menuBtnHTML() { return '<div class="online menubtn"><div class="row"><button type="button" class="alt" id="menuBtn">MAIN MENU</button></div></div>'; }
 function wireMenuBtn() { const b = hud.el.panel.querySelector('#menuBtn'); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); toMainMenu(); }); }
-function toMainMenu() { game.state = 'start'; game.mode = 'solo'; game.menu = false; setArena(false); resetGame(); audio.reelLoop(false); input.exitLock(); hud.setGameplayVisible(false); screen = 'main'; showStart(); }
+function toMainMenu() {
+  monitor.closeMonitor();
+  stake = { token: stake.token, amount: stake.amount, runId: null, seed: null, active: false, reported: false, lastTx: null, error: null };
+  game.state = 'start'; game.mode = 'solo'; game.menu = false; setArena(false); resetGame(); audio.reelLoop(false); input.exitLock(); hud.setGameplayVisible(false); screen = 'main'; showStart(); }
 function toLobbyScreen() { net.inMatch = false; for (const r of remote.values()) r.lastSeen = performance.now(); setArena(true); resetGame(); game.state = 'lobby'; game.over = null; game.menu = false; hud.setGameplayVisible(false); hud.setBoard(null); screen = 'lobby'; showStart(); }
 
 // ---------------- run control ----------------
