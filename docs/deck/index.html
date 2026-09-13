@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Riguwa</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  @page { size: 13.33in 7.5in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --paper:#f4efe2; --ink:#1e37c8; --dark:#14213d; --red:#c0392b; --rule:#b9c7e8; }
+  body { font-family:'Patrick Hand', 'Comic Sans MS', 'Marker Felt', sans-serif;
+         color:var(--dark); background:var(--paper); }
+  .s { width:13.33in; height:7.5in; padding:0.62in 0.85in; page-break-after:always;
+       position:relative; overflow:hidden; background:var(--paper);
+       background-image:repeating-linear-gradient(var(--paper) 0 30px, var(--rule) 30px 31px);
+       display:flex; flex-direction:column; }
+  .s::before { content:''; position:absolute; left:0.55in; top:0; bottom:0; width:2px; background:#e8a0a0; }
+  h1 { font-size:74px; color:var(--ink); line-height:1; letter-spacing:1px; }
+  h2 { font-size:40px; color:var(--ink); margin-bottom:14px; line-height:1.1; }
+  h3 { font-size:24px; color:var(--dark); margin:14px 0 6px; }
+  p, li, td, th { font-size:21px; line-height:1.5; }
+  .lede { font-size:26px; max-width:10.2in; }
+  ul { margin-left:26px; } li { margin-bottom:7px; }
+  .kicker { font-size:17px; letter-spacing:3px; text-transform:uppercase; color:var(--ink); opacity:.75; margin-bottom:10px; }
+  table { border-collapse:collapse; width:100%; margin-top:10px; }
+  td, th { border-bottom:1.5px solid var(--rule); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { color:var(--ink); font-size:19px; }
+  code, pre { font-family:'SF Mono', Menlo, monospace; font-size:15.5px; color:var(--dark); }
+  pre { background:rgba(30,55,200,.06); border:1.5px solid var(--ink); border-radius:7px;
+        padding:12px 14px; margin-top:10px; white-space:pre; line-height:1.45; }
+  .big { font-size:31px; color:var(--ink); }
+  .cols { display:flex; gap:34px; flex:1; }
+  .col { flex:1; }
+  .num { position:absolute; right:0.6in; bottom:0.35in; font-size:15px; opacity:.4; }
+  .shot { max-width:100%; max-height:4.7in; width:auto; display:block; margin:8px auto 0;
+        border:2.5px solid var(--ink); border-radius:9px; }
+  .center { align-items:center; justify-content:center; text-align:center; }
+  .tag { display:inline-block; border:2px solid var(--ink); border-radius:20px;
+         padding:3px 14px; font-size:17px; color:var(--ink); margin:3px 5px 3px 0; }
+  .hl { color:var(--red); }
+  .note { font-size:17px; opacity:.72; margin-top:9px; }
+</style></head><body>
+
+<section class="s center">
+  <img src="../../game/doodleshooter/public/logo.png" style="width:1.5in;margin-bottom:10px">
+  <h1>RIGUWA</h1>
+  <p class="lede" style="margin-top:14px">A ballpoint-doodle survival shooter where the reward is real,<br>
+     and the chain proves you earned it before it pays.</p>
+  <p style="margin-top:22px">
+    <span class="tag">Creditcoin Testnet 102031</span>
+    <span class="tag">Attestcoin Protocol</span>
+    <span class="tag">Gaming track</span></p>
+  <p style="margin-top:18px" class="big">riguwa.xyz</p>
+  <p class="note">github.com/Riguwa-Game/riguwagame</p>
+</section>
+
+<section class="s">
+  <div class="kicker">The problem</div>
+  <h2>Web3 games put value on-chain.<br>They do not put the reason you earned it on-chain.</h2>
+  <ul style="margin-top:12px">
+    <li>A leaderboard is a database row.</li>
+    <li>A reward is an airdrop from a spreadsheet.</li>
+    <li>When a game does settle value on-chain, it trusts a server to say who won,
+        and asks you to trust that server too.</li>
+    <li>When a game reaches across chains, it reaches through a bridge or an oracle operator
+        who must be trusted with the answer.</li>
+  </ul>
+  <p class="big" style="margin-top:26px">The asset is trustless. The claim behind it is not.</p>
+  <p style="margin-top:10px">That gap is the whole problem, and it is the only thing this project set out to close.</p>
+  <div class="num">2</div>
+</section>
+
+<section class="s">
+  <div class="kicker">What it does</div>
+  <h2>A finished game, with the outcome settled by the chain</h2>
+  <p>A first-person survival shooter drawn in blue ballpoint on lined paper and rendered
+     <b>entirely in code</b>. No models, no textures, no sound files.</p>
+  <table>
+    <tr><th style="width:31%">Stake to play</th><td>Stake tCTC or USDT. Wave 5 pays 1.5x, wave 10 pays 2x,
+      wave 15 pays 3x. Below wave 5 the stake joins the pool. <b>There is no free play.</b></td></tr>
+    <tr><th>Cross-chain entry</th><td>Pay on Ethereum Sepolia and hold no tCTC. The Attestcoin block-prover
+      precompile verifies that payment <b>inside the same Creditcoin transaction</b> that credits you.</td></tr>
+    <tr><th>The chain seeds the run</th><td><code>startRun</code> issues a seed from <code>blockhash</code>.
+      The waves you faced were committed before you played.</td></tr>
+    <tr><th>Solvency by construction</th><td><code>startRun</code> reserves the full payout ceiling before
+      accepting a stake. The contract can never owe more than it holds.</td></tr>
+  </table>
+  <div class="num">3</div>
+</section>
+
+<section class="s">
+  <div class="kicker">The game</div>
+  <h2>Wave 1 of a staked run</h2>
+  <img class="shot" src="../images/gameplay.jpg">
+  <p class="note">Every outline, every enemy and every 8-bit music track is procedural.
+     The seed for this run came from <code>blockhash</code> before a single enemy spawned.</p>
+  <div class="num">4</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Universal Smart Contract</div>
+  <h2>How the Attestcoin integration works</h2>
+  <p>A player pays on Sepolia. Nothing is bridged by a trusted party. A contract on Creditcoin
+     <b>proves the source transaction itself</b> and acts on its logs.</p>
+<pre>Sepolia                 ink-monitor relayer          Creditcoin
+payEntry()
+  emits ArenaEntryPaid
+        |
+        +-- picked up -->
+                        waitUntilHeightAttested(1, h)
+                        ProofBuilder.getProof(txHash)
+                                  |
+                                  +-- execute(...) -->  DoodleGateASC
+                                                    1. dedupe by queryId
+                                                    2. BlockProver 0x...0FD2 verifies
+                                                    3. require receiptStatus == 1
+                                                    4. decode logs
+                                                    5. require emitter == sourceGate
+                                                    6. mint credit</pre>
+  <p style="margin-top:12px"><b>Steps 1 to 6 run synchronously, in one Creditcoin transaction.</b>
+     The relayer is a courier, not an oracle: it chooses <i>when</i> to deliver a proof and nothing else.</p>
+  <div class="num">5</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Security</div>
+  <h2>Two checks carry the bridge, and both are in the contract</h2>
+  <div class="cols">
+    <div class="col">
+      <h3>1. The transaction must have succeeded</h3>
+<pre>if (receipt.receiptStatus != 1)
+    revert SourceTransactionFailed();</pre>
+      <p class="note">The block prover proves a transaction was <b>included in a real block</b>.
+         It does not prove it <b>succeeded</b>. Without this, a reverted payment still mints credit.</p>
+    </div>
+    <div class="col">
+      <h3>2. The emitter must be ours</h3>
+<pre>if (_s().sourceGate[chainKey] != emitter
+    || emitter == address(0))
+    revert UnknownEmitter(chainKey, emitter);</pre>
+      <p class="note">Event signatures are public. Without this, anyone deploys a look-alike contract
+         on Sepolia and mints themselves unlimited credit.</p>
+    </div>
+  </div>
+  <p class="big hl" style="margin-top:4px">That second one is the most important line in the repository.</p>
+  <p class="note">Both have dedicated negative tests, alongside replay protection keyed on
+     <code>keccak256(chainKey, blockHeight, txIndex)</code>.</p>
+  <div class="num">6</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Evidence</div>
+  <h2>The precompile did the verifying, not us</h2>
+  <img class="shot" src="../images/attestcoin-proof.png" style="max-height:4.5in;object-fit:cover;object-position:top">
+  <p class="note">The relay transaction's <b>first log</b>. Emitter is <b>BlockProver</b>, the precompile at
+     <code>0x...0FD2</code>, carrying <code>chainKey 1</code> and the Sepolia height it verified.
+     We attest nothing. The chain does, and the contract refuses to act until it has.</p>
+  <div class="num">7</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Receipts, not claims</div>
+  <h2>Live on Creditcoin Testnet</h2>
+  <table>
+    <tr><th style="width:34%">Cross-chain entry works</th><td>Sepolia <code>payEntry 0x9ff6a146</code>
+      relayed to Creditcoin <code>0x021ea75f</code>. 0.0005 ETH in, 0.05 USDT credited.</td></tr>
+    <tr><th>A staked run paid out</th><td><code>settleRun 0x322cf5dc</code>. 1 tCTC staked,
+      wave 12 reached, 2 tCTC paid.</td></tr>
+    <tr><th>The loop closes itself</th><td>Stake <code>0x616a462e</code> observed, signed and settled by
+      ink-monitor in <code>0x1d1d4f88</code>, with no human in the path.</td></tr>
+    <tr><th>Contracts</th><td>All nine <b>source-verified on Blockscout</b>. UUPS proxies with
+      ERC-7201 namespaced storage, solc 0.8.30, EVM target cancun.</td></tr>
+    <tr><th>Tests</th><td><b>186 passing.</b> 139 Foundry at 95.19% lines and 98.04% functions,
+      35 server, 12 game.</td></tr>
+  </table>
+  <div class="num">8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Solvency</div>
+  <h2>Structural, not a policy</h2>
+  <p>A staking game that can promise more than it holds is not a staking game. It is a queue.</p>
+<pre>uint256 ceiling = (amount * $.maxMultiplierBps) / BPS_DENOMINATOR;
+if (p.free &lt; ceiling) revert PoolTooSmall(p.free, ceiling);
+p.free     -= ceiling;
+p.reserved += ceiling;
+p.activeStake += amount;</pre>
+  <p style="margin-top:14px">The full 3x payout ceiling is reserved <b>before</b> the stake is accepted.
+     The invariant is asserted under fuzzing rather than written in a comment:</p>
+  <p class="big" style="margin-top:8px"><code>balance(token) == free + reserved + activeStake</code></p>
+  <div class="num">9</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Honest limits</div>
+  <h2>What is not done yet</h2>
+  <table>
+    <tr><th style="width:36%">The monitor is trusted today</th><td>Threshold 1. It can sign a wrong result
+      within the bounds it checks. The contract already verifies <b>N of M</b> EIP-712 attestations, so a peer
+      quorum is <code>setAttestor</code> plus <code>setThreshold</code>, <b>no redeploy</b>. A test proves it.</td></tr>
+    <tr><th>Writability is not used</th><td>Creditcoin to other chains is still under third-party audit.
+      ETH paid on Sepolia stays in <code>DoodleGate</code>; <code>withdraw</code> marks the seam.</td></tr>
+    <tr><th>blockhash is a weak seed</th><td>Fine for wave composition, which commits before play and is
+      verified after. It is not a lottery and is not used as one.</td></tr>
+    <tr><th>USDT here is a mock</th><td>Testnet-only, deployed by this project, no value, unaffiliated with Tether.</td></tr>
+    <tr><th>Caps are small on purpose</th><td>10 tCTC per run, so one player cannot drain a public testnet pool.</td></tr>
+  </table>
+  <div class="num">10</div>
+</section>
+
+<section class="s center">
+  <img src="../../game/doodleshooter/public/logo.png" style="width:1.1in;margin-bottom:14px">
+  <h2 style="font-size:46px">The chain decides what happened.<br>Not the server. Not us.</h2>
+  <p class="big" style="margin-top:26px">riguwa.xyz</p>
+  <p class="note">github.com/Riguwa-Game/riguwagame &nbsp;·&nbsp; Creditcoin Testnet 102031</p>
+</section>
+
+</body></html>

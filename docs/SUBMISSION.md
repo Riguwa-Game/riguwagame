@@ -334,3 +334,68 @@ We would rather you read this than discover it.
 3. **Seasons.** `SeasonRegistry` is deployed and unused in Phase 1. Per-season leaderboards with
    pool-funded prizes.
 4. **Online multiplayer**, ungated once the offline staked loop has run in public for a while.
+
+---
+---
+
+# Tab "Submission": jawaban per field
+
+Enam field wajib di tab terakhir. Salin satu per satu.
+
+## Project Sector
+
+```
+Gaming / GameFi, with cross-chain infrastructure. A staked first-person survival shooter on Creditcoin Testnet whose entry path is verified by the Attestcoin Protocol rather than by a bridge or an oracle operator.
+```
+
+## Project Description
+
+```
+Riguwa is a staked arena built on a finished first-person survival shooter drawn in blue ballpoint on lined notebook paper and rendered entirely in code, with no models, textures or sound files.
+
+Players stake tCTC or USDT on a run. Reaching wave 5 pays 1.5x, wave 10 pays 2x, wave 15 pays 3x, and a run that ends below wave 5 sends the stake to the pool. There is no free play: the game refuses to start without an active on-chain run.
+
+Two things make the outcome checkable rather than merely recorded. The run seed comes from blockhash at startRun, so the wave composition was committed on-chain before the first enemy spawned. And solvency is structural: startRun reserves the full 3x payout ceiling before it accepts the stake, so the contract can never owe more than it holds, asserted as a fuzz invariant.
+
+Players can also pay their entry on Ethereum Sepolia and never hold tCTC. That path is the Universal Smart Contract integration described below.
+
+Live at https://riguwa.xyz. All nine contracts are source-verified on Blockscout and 186 tests pass across contracts, server and game.
+```
+
+## USC Integration Summary
+
+```
+We wrote a Universal Smart Contract, DoodleGateASC at 0xd6565056853e4627f26B4bB4c1AEF7e9248f09dF on Creditcoin Testnet, that reads and acts on Ethereum Sepolia state directly. It extends our proxy-safe port of @gluwa/asc-contracts 0.2.1 ASCBase, and off-chain we use @gluwa/usc-sdk 0.18.0 for waitUntilHeightAttested and ProofBuilder.getProof.
+
+What it does. A minimal contract on Sepolia, DoodleGate at 0x56CeD9fD5E49C1Aba1371D7aDe383DD16da76484, emits two events and nothing else: ArenaEntryPaid, which credits a player an entry so they can stake while holding no tCTC at all, and PrizePoolFunded, which tops up the reward pool. Our relayer waits for Creditcoin to attest the Sepolia block, fetches the proof, and submits it.
+
+Everything that matters then happens synchronously inside one Creditcoin transaction: dedupe by queryId, call the BlockProver precompile at 0x...0FD2 to verify the source transaction, require receiptStatus == 1, decode the logs, require the emitter is the registered source gate, and mint the credit.
+
+Why that is not a bridge. The relayer is a courier, not an oracle. It chooses when to deliver a proof and nothing else. It cannot forge one and it cannot change what the proof says. The precompile does the attesting, and the contract refuses to act until it has.
+
+Two checks carry the security, and both are in the contract rather than in our infrastructure. First, receiptStatus == 1: the block prover proves a transaction was included in a real block, not that it succeeded, so without this a reverted payment would still mint credit. Second, emitter binding: event signatures are public, so without requiring sourceGate[chainKey] == emitter anyone could deploy a look-alike contract on Sepolia and mint themselves unlimited credit. That is the single most important line in the repository. Both have dedicated negative tests, alongside replay protection keyed on keccak256(chainKey, blockHeight, txIndex).
+
+Proof it works, not a claim. Sepolia payEntry 0x9ff6a14677c820b1ea73156cb7a36e1959792fdfdfbdf0f3feac42099bbb88cb was relayed to Creditcoin in 0x021ea75fdc161883a2cefd82530a6e12e973e74b63d4e9702380805151ed21b5. That relay transaction carries three logs and the first one is the point: TransactionVerified, emitted by the BlockProver precompile itself, carrying chainKey 1 and Sepolia height 11695759. 0.0005 ETH in, 0.05 USDT credited.
+
+One deliberate departure from ASCBase, offered back as feedback. ASCBase hands the subclass (action, queryId, encodedTransaction). We also pass chainKey, because without it a subclass cannot bind the emitter per source chain, which is check two above. We also made VERIFIER a constant rather than a constructor-set immutable, so the contract carries no constructor logic under a UUPS proxy.
+
+One integration trap worth flagging for other teams: Sepolia's Attestcoin chainKey is 1, not its EVM chain id 11155111. The live registry returns tuples whose second field is the EVM chain id, which makes the two easy to swap, and getting it wrong fails in a way that looks like a proof problem and is not.
+
+We did not use Attestcoin Writability, since it is still under third-party audit and not released on testnet. ETH paid on Sepolia therefore stays in DoodleGate and rewards pay out in tCTC or USDT on Creditcoin. DoodleGate.withdraw marks the seam for two-way settlement the moment Writability ships.
+```
+
+## GitHub Repository URL
+
+```
+https://github.com/Riguwa-Game/riguwagame
+```
+
+## Project Deck or Whitepaper (PDF URL)
+
+```
+https://github.com/Riguwa-Game/riguwagame/blob/main/docs/riguwa-deck.pdf
+```
+
+## Prototype Demo Video URL
+
+Belum ada. Ini satu-satunya field yang harus kamu isi sendiri, karena perlu merekam layar dan mengunggah ke YouTube.
