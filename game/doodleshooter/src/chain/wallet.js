@@ -23,7 +23,9 @@ export const modal = createAppKit({
     name: 'Doodle District - Inkstake Arena',
     description: 'A ballpoint-doodle survival shooter with staked runs on Creditcoin',
     url: origin,
-    icons: [origin + '/public/ctc.png'],
+    // The app's own mark. This is what a wallet shows next to the connection request, so it must
+    // be us - ctc.png is Creditcoin's logo and would misrepresent who is asking.
+    icons: [origin + '/public/logo.png'],
   },
   features: { analytics: false, email: false, socials: [] },
   themeMode: 'light',

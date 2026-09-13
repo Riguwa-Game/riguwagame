@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="game/doodleshooter/public/logo.png" alt="Riguwa — a hand-drawn capital R in heavy black outline with hatched shading" width="128">
+
 # Inkstake Arena
 
 ### A ballpoint-doodle survival shooter where the reward is real — and the chain proves you earned it before it pays.
