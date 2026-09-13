@@ -73,7 +73,33 @@ Both have dedicated negative tests. Do not weaken either.
 ```bash
 forge build
 forge test -vvv
-forge coverage
+forge coverage --ir-minimum --report summary   # plain `forge coverage` hits stack-too-deep
 forge fmt --check
-forge test --fork-url https://rpc.cc3-testnet.creditcoin.network --match-path 'test/fork/*'
+./script/check-live.sh                         # verify the live protocol over JSON-RPC
 ```
+
+### Forking Creditcoin does not work
+
+`forge test --fork-url https://rpc.cc3-testnet.creditcoin.network` fails with:
+
+```
+header validation error: `prevrandao` not set
+```
+
+Creditcoin blocks carry no `mixHash` and report `difficulty: 0x0`, and Foundry's fork backend
+expects one of them on a post-Merge chain. This is a Foundry/Frontier mismatch, not a problem
+with these contracts. `test/fork/AttestcoinFork.t.sol` is kept for when it is fixed, and skips
+cleanly without a fork URL.
+
+**Use `./script/check-live.sh` instead.** It makes the same assertions over plain JSON-RPC and
+works today: chain id, supported source chains, live attestation height, and the opcode probe.
+
+### Live facts, as observed
+
+```
+supported chains: [(3, 1, "Ethereum", 1), (1, 11155111, "Sepolia ethereum", 1)]
+```
+
+Note the second field is the source chain's **EVM chainId**, not a genesis height. So
+`chainKey 1` is Sepolia (`11155111`) and `chainKey 3` is Ethereum mainnet (`1`) — which is
+exactly the inversion that makes `SOURCE_CHAIN_KEY=1` easy to get wrong.
