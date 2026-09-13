@@ -16,16 +16,18 @@ there is nothing to build.
 ## Tests
 
 ```bash
-node --test test/
+node --test
 ```
 
 Node's built-in runner — there is no test framework dependency and there must not be one.
+Test files are `.mjs`, because without a `package.json` Node would read a `.js` test as CommonJS.
+Use bare `node --test`; `node --test test/` fails on Node 24.
 
 ## Constraints that must not be broken
 
 - **No build step. No package.json. No bundler.** This is the defining property of the project.
 - **No runtime dependencies** beyond `vendor/`. The import map in `index.html` wires them up.
-- **English only** in all strings, comments and identifiers. `test/english-only.test.js` enforces it.
+- **English only** in all strings, comments and identifiers. `test/english-only.test.mjs` enforces it.
 - Online multiplayer is gated — see the root `CLAUDE.md`.
 
 ## How the look works
