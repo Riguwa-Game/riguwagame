@@ -1,5 +1,6 @@
 // Navigation grid auto-generated from the collision world (multi-level: one node per walkable surface per cell).
 import * as THREE from 'three';
+import { random } from './prng.js';
 
 const _min = new THREE.Vector3(), _max = new THREE.Vector3(), _q = [];
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
@@ -112,5 +113,5 @@ export class NavGrid {
     path.reverse(); path.complete = found;
     return path;
   }
-  randomNode() { return this.nodes[Math.floor(Math.random() * this.nodes.length)]; }
+  randomNode() { return this.nodes[Math.floor(random() * this.nodes.length)]; }
 }

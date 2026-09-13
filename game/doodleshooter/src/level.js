@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeInkMaterial, INK } from './render.js';
-import { rand, choose, TAU } from './util.js';
+import { rand, choose, random, TAU } from './util.js';
 import { buildHumanoid } from './enemies.js';
 
 // Doodle Mexico is built and kept, but off the menu until it is ready; flip this to offer it again
@@ -434,7 +434,7 @@ function buildMexico(B, arena = false) {
   stall(-20, 22, 4.5, 2.4); stall(-13, 22, 4.5, 2.4); stall(20, 22, 4.5, 2.4); stall(13, 22, 4.5, 2.4); stall(-24, -12, 2.4, 4.5); stall(26, -8, 2.4, 4.5);
   pinata(-20, 1.3, 22); pinata(13, 1.3, 22); pinata(-24, 1.3, -12); pinata(26, 1.3, -8); pinata(0, 6.4, 8); pinata(-9, 9.5, 12); pinata(9, 9.5, 12);
   for (const [x, z] of [[-17.5, 24.5], [-9.5, 24.5], [16.5, 24.5], [23.5, 24.5], [-27.5, -9], [-27.5, -15], [29, -5], [29, -11]]) crate(x, z);
-  for (const [x, z] of [[-33, -14], [-33, -12.6], [-33, -6], [-33, 10], [-33, 20], [33, -12], [33, -3], [33, 6], [33, 22], [-6, 30], [6, 30], [-18, 31], [18, 31], [-3, -33], [3, -33]]) pot(x, z, Math.random() < 0.3);
+  for (const [x, z] of [[-33, -14], [-33, -12.6], [-33, -6], [-33, 10], [-33, 20], [33, -12], [33, -3], [33, 6], [33, 22], [-6, 30], [6, 30], [-18, 31], [18, 31], [-3, -33], [3, -33]]) pot(x, z, random() < 0.3);
   for (const [x, z] of [[-18, -30], [18, -30], [-30, 30], [30, 30]]) barrel(x, z);
 
   // ---------------- the taco cart: the best tacos on the page, and where the healing comes from ----------------

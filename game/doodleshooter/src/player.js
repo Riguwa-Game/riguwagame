@@ -6,7 +6,7 @@ import { Rifle, Shotgun, Sniper, Katana } from './weapons.js';
 // the dome shell and anything else flagged this way cannot be hooked
 const NO_GRAPPLE = (b) => !!b.data.noGrapple;
 const STAM_FIRE = 0.09, STAM_DRAIN = 0.08, STAM_GROUND = 0.4, STAM_AIR = 0.2, STAM_MIN = 0.18, STAM_PAUSE = 0.5, PARRY_WINDOW = 0.55;
-import { clamp, damp, rand, Spring, alignYAxis } from './util.js';
+import { clamp, damp, rand, random, Spring, alignYAxis } from './util.js';
 import { audio } from './audio.js';
 
 const G = 26, WALK = 6.6, SPRINT = 10.6, CROUCH = 3.6, ACCEL = 140, FRICTION = 8, AIR_ACCEL = 36, AIR_CAP = 7.5, JUMP = 9.6;
@@ -81,7 +81,7 @@ export class Player {
     const perfect = this.weapon.blockT < 0.26;
     const ctx = this.ctx;
     // only a well timed guard sends it back; otherwise the round is simply knocked out of the air
-    const ret = perfect || Math.random() < 0.35;
+    const ret = perfect || random() < 0.35;
     this.blockCd = 0.19;                                        // the blade has to come back before the next parry
     this.weapon.onDeflect(perfect);
     if (perfect) audio.perfectParry(); else audio.parry();
