@@ -22,19 +22,25 @@ contract UpgradeTest is Test {
     DoodleGateASC internal asc;
 
     function setUp() public {
-        registry = SeasonRegistry(address(new ERC1967Proxy(
-            address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))
-        )));
-        usdt = USDT(address(new ERC1967Proxy(
-            address(new USDT()), abi.encodeCall(USDT.initialize, (owner))
-        )));
-        escrow = ArenaEscrow(payable(address(new ERC1967Proxy(
-            address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
-        ))));
-        asc = DoodleGateASC(address(new ERC1967Proxy(
-            address(new DoodleGateASC()),
-            abi.encodeCall(DoodleGateASC.initialize, (owner, address(usdt), address(escrow)))
-        )));
+        registry = SeasonRegistry(
+            address(new ERC1967Proxy(address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))))
+        );
+        usdt = USDT(address(new ERC1967Proxy(address(new USDT()), abi.encodeCall(USDT.initialize, (owner)))));
+        escrow = ArenaEscrow(
+            payable(address(
+                    new ERC1967Proxy(
+                        address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
+                    )
+                ))
+        );
+        asc = DoodleGateASC(
+            address(
+                new ERC1967Proxy(
+                    address(new DoodleGateASC()),
+                    abi.encodeCall(DoodleGateASC.initialize, (owner, address(usdt), address(escrow)))
+                )
+            )
+        );
 
         vm.startPrank(owner);
         registry.setEscrow(address(escrow));

@@ -11,14 +11,8 @@ interface ISeasonRegistry {
         uint256 totalWon;
     }
 
-    function recordRun(
-        address player,
-        uint32 waveReached,
-        uint64 score,
-        address token,
-        uint256 staked,
-        uint256 won
-    ) external;
+    function recordRun(address player, uint32 waveReached, uint64 score, address token, uint256 staked, uint256 won)
+        external;
 
     function currentSeason() external view returns (uint64);
 

@@ -19,12 +19,16 @@ contract ArenaEscrowAdminTest is Test {
 
     function setUp() public {
         (monitor, monitorPk) = makeAddrAndKey("monitor");
-        registry = SeasonRegistry(address(new ERC1967Proxy(
-            address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))
-        )));
-        escrow = ArenaEscrow(payable(address(new ERC1967Proxy(
-            address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
-        ))));
+        registry = SeasonRegistry(
+            address(new ERC1967Proxy(address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))))
+        );
+        escrow = ArenaEscrow(
+            payable(address(
+                    new ERC1967Proxy(
+                        address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
+                    )
+                ))
+        );
         vm.startPrank(owner);
         registry.setEscrow(address(escrow));
         escrow.setMaxStake(address(0), 100e18);

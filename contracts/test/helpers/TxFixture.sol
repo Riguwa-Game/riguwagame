@@ -18,9 +18,7 @@ library TxFixture {
         pure
         returns (bytes memory)
     {
-        bytes memory common = abi.encode(
-            uint64(1), uint64(21000), from, false, to, uint256(0), bytes("")
-        );
+        bytes memory common = abi.encode(uint64(1), uint64(21000), from, false, to, uint256(0), bytes(""));
         bytes memory receipt = abi.encode(status, uint64(21000), logs, bytes(""));
 
         bytes[] memory chunks = new bytes[](3);

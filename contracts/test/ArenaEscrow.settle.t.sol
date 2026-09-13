@@ -31,15 +31,17 @@ contract ArenaEscrowSettleTest is Test {
         (stranger, strangerPk) = makeAddrAndKey("stranger");
         (peer, peerPk) = makeAddrAndKey("peer");
 
-        registry = SeasonRegistry(address(new ERC1967Proxy(
-            address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))
-        )));
-        usdt = USDT(address(new ERC1967Proxy(
-            address(new USDT()), abi.encodeCall(USDT.initialize, (owner))
-        )));
-        escrow = ArenaEscrow(payable(address(new ERC1967Proxy(
-            address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
-        ))));
+        registry = SeasonRegistry(
+            address(new ERC1967Proxy(address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))))
+        );
+        usdt = USDT(address(new ERC1967Proxy(address(new USDT()), abi.encodeCall(USDT.initialize, (owner)))));
+        escrow = ArenaEscrow(
+            payable(address(
+                    new ERC1967Proxy(
+                        address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
+                    )
+                ))
+        );
 
         vm.startPrank(owner);
         registry.setEscrow(address(escrow));
@@ -63,9 +65,7 @@ contract ArenaEscrowSettleTest is Test {
         return escrow.startRun{value: amount}(address(0), amount);
     }
 
-    function _result(bytes32 runId, uint32 wave, uint64 score)
-        internal view returns (IArenaEscrow.RunResult memory)
-    {
+    function _result(bytes32 runId, uint32 wave, uint64 score) internal view returns (IArenaEscrow.RunResult memory) {
         return IArenaEscrow.RunResult({
             runId: runId, player: alice, waveReached: wave, score: score, endedAt: uint64(block.timestamp)
         });
@@ -256,9 +256,8 @@ contract ArenaEscrowSettleTest is Test {
                 address(escrow)
             )
         );
-        bytes32 structHash = keccak256(
-            abi.encode(escrow.RUN_RESULT_TYPEHASH(), r.runId, r.player, r.waveReached, r.score, r.endedAt)
-        );
+        bytes32 structHash =
+            keccak256(abi.encode(escrow.RUN_RESULT_TYPEHASH(), r.runId, r.player, r.waveReached, r.score, r.endedAt));
         bytes32 foreign = keccak256(abi.encodePacked("\x19\x01", wrongDomain, structHash));
 
         vm.expectRevert();

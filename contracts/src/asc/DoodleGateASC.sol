@@ -44,9 +44,7 @@ contract DoodleGateASC is ASCReadableUpgradeable, OwnableUpgradeable, UUPSUpgrad
     bytes32 public constant ENTRY_PAID_SIGNATURE = keccak256("ArenaEntryPaid(address,bytes32,uint256)");
     bytes32 public constant PRIZE_FUNDED_SIGNATURE = keccak256("PrizePoolFunded(address,uint256)");
 
-    event EntryCredited(
-        address indexed player, bytes32 indexed runRef, uint256 credited, bytes32 indexed queryId
-    );
+    event EntryCredited(address indexed player, bytes32 indexed runRef, uint256 credited, bytes32 indexed queryId);
     event PoolSponsored(address indexed sponsor, uint256 credited, bytes32 indexed queryId);
     event SourceGateSet(uint64 indexed chainKey, address indexed gate);
 
@@ -59,8 +57,7 @@ contract DoodleGateASC is ASCReadableUpgradeable, OwnableUpgradeable, UUPSUpgrad
         mapping(uint64 chainKey => address gate) sourceGate;
     }
 
-    bytes32 private constant STORAGE_SLOT =
-        0x12d06c2cb907555d20e6d5be977c9855812f0706a9bcd821f201f9346d1b8300;
+    bytes32 private constant STORAGE_SLOT = 0x12d06c2cb907555d20e6d5be977c9855812f0706a9bcd821f201f9346d1b8300;
 
     function _s() private pure returns (ASCStorage storage $) {
         assembly {
@@ -118,12 +115,10 @@ contract DoodleGateASC is ASCReadableUpgradeable, OwnableUpgradeable, UUPSUpgrad
 
     // ---------------- readability handler ----------------
 
-    function _processAndEmitEvent(
-        uint8 action,
-        uint64 chainKey,
-        bytes32 queryId,
-        bytes memory encodedTransaction
-    ) internal override {
+    function _processAndEmitEvent(uint8 action, uint64 chainKey, bytes32 queryId, bytes memory encodedTransaction)
+        internal
+        override
+    {
         uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
         if (!EvmV1Decoder.isValidTransactionType(txType)) revert UnsupportedTxType(txType);
 
@@ -140,11 +135,8 @@ contract DoodleGateASC is ASCReadableUpgradeable, OwnableUpgradeable, UUPSUpgrad
         }
     }
 
-    function _creditEntry(uint64 chainKey, bytes32 queryId, EvmV1Decoder.ReceiptFields memory receipt)
-        private
-    {
-        EvmV1Decoder.LogEntry[] memory logs =
-            EvmV1Decoder.getLogsByEventSignature(receipt, ENTRY_PAID_SIGNATURE);
+    function _creditEntry(uint64 chainKey, bytes32 queryId, EvmV1Decoder.ReceiptFields memory receipt) private {
+        EvmV1Decoder.LogEntry[] memory logs = EvmV1Decoder.getLogsByEventSignature(receipt, ENTRY_PAID_SIGNATURE);
         if (logs.length == 0) revert NoMatchingEvent();
 
         // Policy: only the first matching event in a transaction is honoured.
@@ -161,11 +153,8 @@ contract DoodleGateASC is ASCReadableUpgradeable, OwnableUpgradeable, UUPSUpgrad
         emit EntryCredited(player, runRef, credited, queryId);
     }
 
-    function _sponsorPool(uint64 chainKey, bytes32 queryId, EvmV1Decoder.ReceiptFields memory receipt)
-        private
-    {
-        EvmV1Decoder.LogEntry[] memory logs =
-            EvmV1Decoder.getLogsByEventSignature(receipt, PRIZE_FUNDED_SIGNATURE);
+    function _sponsorPool(uint64 chainKey, bytes32 queryId, EvmV1Decoder.ReceiptFields memory receipt) private {
+        EvmV1Decoder.LogEntry[] memory logs = EvmV1Decoder.getLogsByEventSignature(receipt, PRIZE_FUNDED_SIGNATURE);
         if (logs.length == 0) revert NoMatchingEvent();
 
         EvmV1Decoder.LogEntry memory log = logs[0];

@@ -31,8 +31,7 @@ contract SeasonRegistry is ISeasonRegistry, OwnableUpgradeable, UUPSUpgradeable 
         mapping(uint64 season => mapping(address player => PlayerStats)) stats;
     }
 
-    bytes32 private constant STORAGE_SLOT =
-        0x7a4a5c417275a8e784c1b2fa5f44d304cfe537c32066064710d669f7da8bf400;
+    bytes32 private constant STORAGE_SLOT = 0x7a4a5c417275a8e784c1b2fa5f44d304cfe537c32066064710d669f7da8bf400;
 
     function _s() private pure returns (RegistryStorage storage $) {
         assembly {
@@ -81,14 +80,10 @@ contract SeasonRegistry is ISeasonRegistry, OwnableUpgradeable, UUPSUpgradeable 
         return next;
     }
 
-    function recordRun(
-        address player,
-        uint32 waveReached,
-        uint64 score,
-        address token,
-        uint256 staked,
-        uint256 won
-    ) external onlyEscrow {
+    function recordRun(address player, uint32 waveReached, uint64 score, address token, uint256 staked, uint256 won)
+        external
+        onlyEscrow
+    {
         RegistryStorage storage $ = _s();
         uint64 season = $.season;
         PlayerStats storage p = $.stats[season][player];

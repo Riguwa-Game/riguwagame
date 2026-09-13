@@ -2,8 +2,7 @@
 pragma solidity 0.8.30;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {INativeQueryVerifier} from
-    "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
+import {INativeQueryVerifier} from "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
 
 /// @title ASCReadableUpgradeable
 /// @notice Proxy-safe base for an Attestcoin Smart Contract using Readability: verify a
@@ -20,16 +19,14 @@ abstract contract ASCReadableUpgradeable is Initializable {
     error ProofVerificationFailed();
 
     /// @notice The Attestcoin block-prover precompile (`0xFD2` / 4050).
-    INativeQueryVerifier internal constant VERIFIER =
-        INativeQueryVerifier(0x0000000000000000000000000000000000000FD2);
+    INativeQueryVerifier internal constant VERIFIER = INativeQueryVerifier(0x0000000000000000000000000000000000000FD2);
 
     /// @custom:storage-location erc7201:inkstake.storage.ASCReadable
     struct ASCReadableStorage {
         mapping(bytes32 queryId => bool) processed;
     }
 
-    bytes32 private constant STORAGE_SLOT =
-        0xc93ddaed6853b6750c13e9d657f8d94b1582a34a1c5316222dcd54ccc718c100;
+    bytes32 private constant STORAGE_SLOT = 0xc93ddaed6853b6750c13e9d657f8d94b1582a34a1c5316222dcd54ccc718c100;
 
     function _ascStorage() private pure returns (ASCReadableStorage storage $) {
         assembly {
@@ -42,12 +39,9 @@ abstract contract ASCReadableUpgradeable is Initializable {
     }
 
     /// @notice App-specific handler, invoked only after the proof verifies and dedupes.
-    function _processAndEmitEvent(
-        uint8 action,
-        uint64 chainKey,
-        bytes32 queryId,
-        bytes memory encodedTransaction
-    ) internal virtual;
+    function _processAndEmitEvent(uint8 action, uint64 chainKey, bytes32 queryId, bytes memory encodedTransaction)
+        internal
+        virtual;
 
     /// @notice Verify inclusion and continuity, enforce one-time processing, then run app logic.
     function execute(
@@ -68,14 +62,9 @@ abstract contract ASCReadableUpgradeable is Initializable {
         INativeQueryVerifier.MerkleProof memory merkleProof =
             INativeQueryVerifier.MerkleProof({root: merkleRoot, siblings: siblings});
         INativeQueryVerifier.ContinuityProof memory continuityProof =
-            INativeQueryVerifier.ContinuityProof({
-                lowerEndpointDigest: lowerEndpointDigest,
-                roots: continuityRoots
-            });
+            INativeQueryVerifier.ContinuityProof({lowerEndpointDigest: lowerEndpointDigest, roots: continuityRoots});
 
-        bool verified = VERIFIER.verifyAndEmit(
-            chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof
-        );
+        bool verified = VERIFIER.verifyAndEmit(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
         if (!verified) revert ProofVerificationFailed();
 
         $.processed[queryId] = true;

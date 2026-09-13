@@ -50,9 +50,7 @@ interface IArenaEscrow {
         bytes32 seed,
         uint64 deadline
     );
-    event RunSettled(
-        bytes32 indexed runId, address indexed player, uint32 waveReached, uint64 score, uint256 payout
-    );
+    event RunSettled(bytes32 indexed runId, address indexed player, uint32 waveReached, uint64 score, uint256 payout);
     event RunAbandoned(bytes32 indexed runId, address indexed player, uint256 refunded);
     event PoolFunded(address indexed token, address indexed from, uint256 amount);
 }

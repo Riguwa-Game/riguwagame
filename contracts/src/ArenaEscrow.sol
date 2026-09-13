@@ -3,8 +3,7 @@ pragma solidity 0.8.30;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {EIP712Upgradeable} from
-    "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -26,13 +25,7 @@ import {ISeasonRegistry} from "./interfaces/ISeasonRegistry.sol";
 ///      ReentrancyGuardUpgradeable, and the plain guard is proxy-safe because its check tests
 ///      `value == ENTERED (2)` while an uninitialised slot reads 0. Its constructor is only a
 ///      gas optimisation and not running it under a proxy is harmless.
-contract ArenaEscrow is
-    IArenaEscrow,
-    OwnableUpgradeable,
-    UUPSUpgradeable,
-    EIP712Upgradeable,
-    ReentrancyGuard
-{
+contract ArenaEscrow is IArenaEscrow, OwnableUpgradeable, UUPSUpgradeable, EIP712Upgradeable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     error RunAlreadyActive();
@@ -73,8 +66,7 @@ contract ArenaEscrow is
         mapping(address player => uint256) runNonce;
     }
 
-    bytes32 private constant STORAGE_SLOT =
-        0xcf5ea8a7afd0f750bf3fb7589d3874efecbc02abcd883e191bbc203b187f4e00;
+    bytes32 private constant STORAGE_SLOT = 0xcf5ea8a7afd0f750bf3fb7589d3874efecbc02abcd883e191bbc203b187f4e00;
 
     function _s() private pure returns (EscrowStorage storage $) {
         assembly {
@@ -158,12 +150,7 @@ contract ArenaEscrow is
     // ---------------- staking ----------------
 
     /// @notice Stake and begin a run. Reverts unless the pool can cover the payout ceiling.
-    function startRun(address token, uint256 amount)
-        external
-        payable
-        nonReentrant
-        returns (bytes32 runId)
-    {
+    function startRun(address token, uint256 amount) external payable nonReentrant returns (bytes32 runId) {
         EscrowStorage storage $ = _s();
 
         if ($.activeRun[msg.sender] != bytes32(0)) revert RunAlreadyActive();
@@ -263,10 +250,7 @@ contract ArenaEscrow is
         if (payout != 0) _pay(token, r.player, payout);
     }
 
-    function _verifyAttestations(EscrowStorage storage $, RunResult calldata r, bytes[] calldata sigs)
-        private
-        view
-    {
+    function _verifyAttestations(EscrowStorage storage $, RunResult calldata r, bytes[] calldata sigs) private view {
         bytes32 digest = hashRunResult(r);
         uint256 n = sigs.length;
         address[] memory seen = new address[](n);

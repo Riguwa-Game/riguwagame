@@ -4,8 +4,7 @@ pragma solidity 0.8.30;
 import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {INativeQueryVerifier} from
-    "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
+import {INativeQueryVerifier} from "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
 
 import {DoodleGateASC} from "../src/asc/DoodleGateASC.sol";
 import {ASCReadableUpgradeable} from "../src/asc/ASCReadableUpgradeable.sol";
@@ -37,19 +36,25 @@ contract DoodleGateASCTest is Test {
         vm.etch(PRECOMPILE, address(prover).code);
         MockBlockProver(PRECOMPILE).mockSet(true, 3, false);
 
-        registry = SeasonRegistry(address(new ERC1967Proxy(
-            address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))
-        )));
-        usdt = USDT(address(new ERC1967Proxy(
-            address(new USDT()), abi.encodeCall(USDT.initialize, (owner))
-        )));
-        escrow = ArenaEscrow(payable(address(new ERC1967Proxy(
-            address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
-        ))));
-        asc = DoodleGateASC(address(new ERC1967Proxy(
-            address(new DoodleGateASC()),
-            abi.encodeCall(DoodleGateASC.initialize, (owner, address(usdt), address(escrow)))
-        )));
+        registry = SeasonRegistry(
+            address(new ERC1967Proxy(address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))))
+        );
+        usdt = USDT(address(new ERC1967Proxy(address(new USDT()), abi.encodeCall(USDT.initialize, (owner)))));
+        escrow = ArenaEscrow(
+            payable(address(
+                    new ERC1967Proxy(
+                        address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
+                    )
+                ))
+        );
+        asc = DoodleGateASC(
+            address(
+                new ERC1967Proxy(
+                    address(new DoodleGateASC()),
+                    abi.encodeCall(DoodleGateASC.initialize, (owner, address(usdt), address(escrow)))
+                )
+            )
+        );
 
         vm.startPrank(owner);
         registry.setEscrow(address(escrow));
@@ -73,23 +78,19 @@ contract DoodleGateASCTest is Test {
     }
 
     function _entryTx(address emitter, uint8 status, uint256 amount) internal view returns (bytes memory) {
-        bytes32[] memory topics = TxFixture.topics3(
-            asc.ENTRY_PAID_SIGNATURE(), bytes32(uint256(uint160(player))), RUN_REF
-        );
+        bytes32[] memory topics =
+            TxFixture.topics3(asc.ENTRY_PAID_SIGNATURE(), bytes32(uint256(uint160(player))), RUN_REF);
         return TxFixture.encode(2, player, emitter, status, TxFixture.oneLog(emitter, topics, abi.encode(amount)));
     }
 
     function _prizeTx(address emitter, uint8 status, uint256 amount) internal view returns (bytes memory) {
-        bytes32[] memory topics = TxFixture.topics2(
-            asc.PRIZE_FUNDED_SIGNATURE(), bytes32(uint256(uint160(sponsor)))
-        );
+        bytes32[] memory topics = TxFixture.topics2(asc.PRIZE_FUNDED_SIGNATURE(), bytes32(uint256(uint160(sponsor))));
         return TxFixture.encode(2, sponsor, emitter, status, TxFixture.oneLog(emitter, topics, abi.encode(amount)));
     }
 
     function _exec(uint8 action, bytes memory encodedTx, uint64 height) internal returns (bool) {
         return asc.execute(
-            action, SEPOLIA_KEY, height, encodedTx, keccak256("merkleRoot"),
-            _siblings(), keccak256("lower"), _roots()
+            action, SEPOLIA_KEY, height, encodedTx, keccak256("merkleRoot"), _siblings(), keccak256("lower"), _roots()
         );
     }
 
@@ -176,9 +177,7 @@ contract DoodleGateASCTest is Test {
         bytes memory encodedTx = _entryTx(sourceGate, 1, 1e18);
         _exec(0, encodedTx, 106);
         bytes32 queryId = keccak256(abi.encodePacked(SEPOLIA_KEY, uint64(106), uint64(3)));
-        vm.expectRevert(
-            abi.encodeWithSelector(ASCReadableUpgradeable.QueryAlreadyProcessed.selector, queryId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ASCReadableUpgradeable.QueryAlreadyProcessed.selector, queryId));
         _exec(0, encodedTx, 106);
     }
 
@@ -193,9 +192,7 @@ contract DoodleGateASCTest is Test {
     /// deploy a look-alike contract on Sepolia and mint themselves unlimited credit.
     function test_revert_eventFromAnUnregisteredEmitter() public {
         bytes memory encodedTx = _entryTx(impostorGate, 1, 1e18);
-        vm.expectRevert(
-            abi.encodeWithSelector(DoodleGateASC.UnknownEmitter.selector, SEPOLIA_KEY, impostorGate)
-        );
+        vm.expectRevert(abi.encodeWithSelector(DoodleGateASC.UnknownEmitter.selector, SEPOLIA_KEY, impostorGate));
         _exec(0, encodedTx, 108);
     }
 
@@ -203,9 +200,7 @@ contract DoodleGateASCTest is Test {
         bytes memory encodedTx = _entryTx(sourceGate, 1, 1e18);
         INativeQueryVerifier.MerkleProofEntry[] memory sib = _siblings();
         bytes32[] memory rts = _roots();
-        vm.expectRevert(
-            abi.encodeWithSelector(DoodleGateASC.UnknownEmitter.selector, uint64(99), sourceGate)
-        );
+        vm.expectRevert(abi.encodeWithSelector(DoodleGateASC.UnknownEmitter.selector, uint64(99), sourceGate));
         asc.execute(0, 99, 109, encodedTx, keccak256("merkleRoot"), sib, keccak256("lower"), rts);
     }
 

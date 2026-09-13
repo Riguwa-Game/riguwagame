@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {INativeQueryVerifier} from
-    "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
+import {INativeQueryVerifier} from "@gluwa/asc-contracts/contracts/write-ability/common/INativeQueryVerifier.sol";
 
 /// @notice Stand-in for the Creditcoin block-prover precompile, which has no bytecode on a local
 ///         EVM. Etch this at 0x…0FD2 with `vm.etch`, then call `mockSet` on that address.
@@ -30,11 +29,7 @@ contract MockBlockProver {
         return shouldVerify;
     }
 
-    function calculateTxIndex(INativeQueryVerifier.MerkleProof calldata)
-        external
-        view
-        returns (uint64)
-    {
+    function calculateTxIndex(INativeQueryVerifier.MerkleProof calldata) external view returns (uint64) {
         return nextTxIndex;
     }
 }

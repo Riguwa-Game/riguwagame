@@ -25,8 +25,7 @@ contract USDT is ERC20Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
         mapping(address account => uint256 at) lastFaucet;
     }
 
-    bytes32 private constant STORAGE_SLOT =
-        0x181e7851ce70236646a4bdccacb641dd7f5cd904ed2d297634c5f3875df74200;
+    bytes32 private constant STORAGE_SLOT = 0x181e7851ce70236646a4bdccacb641dd7f5cd904ed2d297634c5f3875df74200;
 
     function _s() private pure returns (USDTStorage storage $) {
         assembly {

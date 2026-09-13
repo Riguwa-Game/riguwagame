@@ -21,16 +21,17 @@ contract ArenaEscrowStartTest is Test {
     uint256 constant MAX_USDT = 100e6;
 
     function setUp() public {
-        registry = SeasonRegistry(address(new ERC1967Proxy(
-            address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))
-        )));
-        usdt = USDT(address(new ERC1967Proxy(
-            address(new USDT()), abi.encodeCall(USDT.initialize, (owner))
-        )));
-        escrow = ArenaEscrow(payable(address(new ERC1967Proxy(
-            address(new ArenaEscrow()),
-            abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
-        ))));
+        registry = SeasonRegistry(
+            address(new ERC1967Proxy(address(new SeasonRegistry()), abi.encodeCall(SeasonRegistry.initialize, (owner))))
+        );
+        usdt = USDT(address(new ERC1967Proxy(address(new USDT()), abi.encodeCall(USDT.initialize, (owner)))));
+        escrow = ArenaEscrow(
+            payable(address(
+                    new ERC1967Proxy(
+                        address(new ArenaEscrow()), abi.encodeCall(ArenaEscrow.initialize, (owner, address(registry)))
+                    )
+                ))
+        );
 
         vm.startPrank(owner);
         registry.setEscrow(address(escrow));
