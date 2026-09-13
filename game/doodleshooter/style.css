@@ -212,14 +212,16 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .lobbyrow .code { font-size: 22px; letter-spacing: 3px; padding: 0 8px; border-width: 2px; }
 .lobbyrow button { font-size: 18px; padding: 3px 12px; }
 
-/* staked run panel on the main menu */
-.stake { margin: 10px 0; padding: 10px 12px; border: 2px solid currentColor; border-radius: 6px; }
-.stake .row { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
-.stake input[type=number] { font: inherit; padding: 2px 6px; border: 1.5px solid currentColor; background: transparent; color: inherit; border-radius: 3px; width: 6em; }
-.stake .hint { opacity: 0.7; font-size: 0.85em; }
-.stake .status { min-height: 1.2em; opacity: 0.85; font-size: 0.9em; }
-.stake .tokens { display: flex; gap: 10px; justify-content: center; margin-top: 8px; opacity: 0.85; }
-.stake .tokenbtn { display: inline-flex; align-items: center; gap: 6px; font: inherit; padding: 3px 9px; border: 1.5px solid currentColor; background: transparent; color: inherit; border-radius: 4px; cursor: pointer; }
-.stake .tokenbtn.on { background: var(--ink); color: var(--paper); }
-.stake .tokenbtn img { display: block; }
-.stake a { color: inherit; }
+/* staked run panel - reuses the game's own button components (.online, .mapbtn) */
+.stake { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 12px; font-size: 21px; }
+.stake .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.stake input[type=number] { font: inherit; font-size: 20px; color: var(--ink); background: transparent; border: 2px solid var(--ink); border-radius: 6px 8px 5px 7px; padding: 3px 8px; width: 4.5em; text-align: center; }
+.stake .hint { font-size: 17px; opacity: .7; }
+.stake .status { font-size: 18px; opacity: .85; min-height: 1.2em; color: var(--red); }
+.stake b { color: var(--red); }
+.stake .tokens { display: flex; gap: 12px; align-items: center; opacity: .85; }
+.stake .tokens img { transform: rotate(-3deg); }
+.stake .mapbtn { flex-direction: row; gap: 7px; font-size: 19px; padding: 4px 13px; }
+.stake .mapbtn img { display: block; }
+.stake .mapbtn.on img { filter: brightness(1.6) saturate(.4); }
+.stake a { color: var(--red); }

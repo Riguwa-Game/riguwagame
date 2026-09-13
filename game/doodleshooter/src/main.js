@@ -642,19 +642,18 @@ function stakeHTML() {
   const addr = wallet.currentAddress();
   if (!addr) {
     return `<div class="stake" id="stake">
-      <button type="button" class="big" id="connectBtn">CONNECT WALLET<i>stake tCTC or USDT · win up to 3x</i></button>
-      <div class="tokens"><img src="${TOKEN_LOGOS.ctc}" alt="Creditcoin" width="26" height="26"><img src="${TOKEN_LOGOS.usdt}" alt="USDT" width="26" height="26"></div>
+      <div class="mainbtns"><button type="button" id="connectBtn">CONNECT WALLET<i>stake tCTC or USDT · win up to 3x</i></button></div>
+      <div class="tokens"><img src="${TOKEN_LOGOS.ctc}" alt="Creditcoin" width="30" height="30"><img src="${TOKEN_LOGOS.usdt}" alt="USDT" width="30" height="30"></div>
       <div class="status" id="stakeStatus"></div>
     </div>`;
   }
   const native = stake.token === NATIVE;
-  return `<div class="stake" id="stake">
+  return `<div class="stake online" id="stake">
     <div class="row"><span>wallet</span><b>${esc(wallet.shortAddress(addr))}</b>
-      <span class="hint">${CHAIN.name}</span>
       <button type="button" class="alt" id="walletBtn">manage</button></div>
-    <div class="row"><span>stake</span>
-      <button type="button" class="tokenbtn${native ? ' on' : ''}" data-token="${NATIVE}"><img src="${TOKEN_LOGOS.ctc}" alt="" width="18" height="18">tCTC</button>
-      <button type="button" class="tokenbtn${native ? '' : ' on'}" data-token="${ADDRESSES.usdt}"><img src="${TOKEN_LOGOS.usdt}" alt="" width="18" height="18">USDT</button>
+    <div class="row">
+      <button type="button" class="mapbtn${native ? ' on' : ''}" data-token="${NATIVE}"><img src="${TOKEN_LOGOS.ctc}" alt="" width="20" height="20">tCTC</button>
+      <button type="button" class="mapbtn${native ? '' : ' on'}" data-token="${ADDRESSES.usdt}"><img src="${TOKEN_LOGOS.usdt}" alt="" width="20" height="20">USDT</button>
       <input type="number" id="stakeAmount" min="0" max="100" step="0.1" value="${esc(stake.amount)}">
       <span class="hint">max 100</span></div>
     <div class="row"><button type="button" class="big" id="stakedBtn">PLAY STAKED RUN</button>
@@ -673,7 +672,7 @@ function wireStake() {
   if (q('connectBtn')) q('connectBtn').addEventListener('click', () => wallet.openWallet());
   if (q('walletBtn')) q('walletBtn').addEventListener('click', () => wallet.openWallet());
   box.addEventListener('click', (e) => {
-    const b = e.target.closest('.tokenbtn');
+    const b = e.target.closest('.mapbtn[data-token]');
     if (b) { stake.token = b.dataset.token; showStart(); }
   });
   if (q('stakeAmount')) q('stakeAmount').addEventListener('input', (e) => { stake.amount = e.target.value; });
@@ -712,12 +711,12 @@ async function onRunSigned(result, signature) {
 function stakeResultHTML() {
   if (!stake.active) return '';
   const mult = game.wave >= 15 ? '3x' : game.wave >= 10 ? '2x' : game.wave >= 5 ? '1.5x' : null;
-  if (stake.error) return `<div class="stake"><b>settlement failed</b><div class="hint">${esc(stake.error)}</div></div>`;
+  if (stake.error) return `<div class="stake"><b>settlement failed</b><span class="hint">${esc(stake.error)}</span></div>`;
   if (stake.lastTx) {
-    return `<div class="stake"><b>${mult ? 'you won ' + mult + ' of your stake' : 'stake lost · reach wave 5 next time'}</b>
-      <div class="hint"><a href="${CHAIN.explorer}/tx/${stake.lastTx}" target="_blank" rel="noopener">view on Blockscout</a></div></div>`;
+    return `<div class="stake"><b>${mult ? 'YOU WON ' + mult + ' OF YOUR STAKE' : 'stake lost · reach wave 5 next time'}</b>
+      <span class="hint"><a href="${CHAIN.explorer}/tx/${stake.lastTx}" target="_blank" rel="noopener">view on Blockscout</a></span></div>`;
   }
-  return '<div class="stake"><b>settling on-chain…</b><div class="hint">waiting for the monitor signature</div></div>';
+  return '<div class="stake"><b>settling on-chain…</b><span class="hint">waiting for the monitor signature</span></div>';
 }
 function onlineHTML() {
   return `<h1>PLAY ONLINE</h1><h2>free for all · first to ${FFA_TARGET} · up to 10 players</h2>
