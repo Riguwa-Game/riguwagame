@@ -20,6 +20,7 @@ payment on-chain, with no oracle in between.
 [![Track](https://img.shields.io/badge/track-Gaming-8957e5?style=for-the-badge)](https://dorahacks.io/hackathon/buidl-ctc-2026-fall/detail)
 
 **[▶ Play it — riguwa.xyz](https://riguwa.xyz)** ·
+**[▶ Demo video](https://youtu.be/zuYOx_-q3ZM)** ·
 **[Attestcoin Integration](docs/ATTESTCOIN_INTEGRATION.md)** ·
 **[Deployment](contracts/DEPLOYMENT.md)** ·
 **[Explorer](https://creditcoin-testnet.blockscout.com)** ·
