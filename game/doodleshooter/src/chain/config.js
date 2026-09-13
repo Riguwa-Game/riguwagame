@@ -9,12 +9,13 @@ const override = (typeof window !== 'undefined' && window.INKSTAKE_CONFIG) || {}
 
 const DEMO_PROJECT_ID = 'b56e18d47c72ab683b10814fe9495694';
 
-/// Reown AppKit project id.
-/// DEMO_PROJECT_ID is Reown's PUBLIC DOCUMENTATION id and only works on localhost. On a real
-/// domain, wallets verify `metadata.url` against the domains registered for the project, so a
-/// deployment using it will fail or be flagged untrusted. Create a project at
-/// https://dashboard.reown.com, register the domain, and set the id here.
-export const REOWN_PROJECT_ID = override.reownProjectId || DEMO_PROJECT_ID;
+/// Reown AppKit project id for riguwa.xyz.
+/// Wallets verify `metadata.url` against the domains registered on this project, so every domain
+/// the game is served from must be listed at https://dashboard.reown.com - riguwa.xyz,
+/// www.riguwa.xyz, and localhost for development.
+/// DEMO_PROJECT_ID below is Reown's public documentation id; it only works on localhost and is
+/// kept solely so the warning underneath can detect it.
+export const REOWN_PROJECT_ID = override.reownProjectId || '4553a4639c46b13a8f3da08c527a28e5';
 
 const isLocal =
   typeof location !== 'undefined' &&

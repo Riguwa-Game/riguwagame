@@ -26,9 +26,25 @@ Attestor (`ink-monitor`): `0xFd2ade73561E4700654C9c21932Dda8495e58665` — signs
 | `DoodleGateASC` | Creditcoin | Attestcoin Smart Contract. Verifies Sepolia proofs, mints credits. |
 | `DoodleGate` | Sepolia | Minimal. Emits `ArenaEntryPaid` and `PrizePoolFunded`. |
 
+## Live parameters
+
+| Setting | Value | How to change it |
+| --- | --- | --- |
+| Max stake | 10 tCTC · 100 USDT | `setMaxStake` — **owner setter, no upgrade** |
+| Reward pool | 2,000 tCTC · 100,000 USDT | `fundPool` |
+| Payout tiers | wave 5 → 1.5x · 10 → 2x · 15+ → 3x | `setMultiplierTiers`, validated monotonic |
+| Attestor threshold | 1 | `setThreshold` — this is the Phase 1 → 2 switch |
+
+**Keep the pool ahead of the cap.** `startRun` reserves `stake x 3` before accepting a stake, so the
+pool must hold at least `maxStake x 3` free or the advertised cap is a lie and the run reverts with
+`PoolTooSmall` — which wallets report as an opaque "internal error". At 10 and 2,000 the pool backs
+66 concurrent max-size runs.
+
 ## Rules
 
 - **UUPS on every Creditcoin contract**, ERC-7201 namespaced storage, verified on Blockscout.
+- **Most parameters are owner setters, not constants.** Reach for `setMaxStake` / `fundPool` /
+  `setMultiplierTiers` / `setAttestor` before reaching for an upgrade.
 - **Test first.** Write the failing test, watch it fail, then implement.
 - **Never commit `.env`.** It holds a live deployer key.
 - `evm_version = "cancun"` and `via_ir = true`. IR avoids stack-too-deep in several contracts.

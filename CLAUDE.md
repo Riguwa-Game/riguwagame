@@ -1,42 +1,57 @@
 # Doodle District — Inkstake Arena
 
-A browser FPS with an on-chain staking layer on Creditcoin, using the Attestcoin Protocol for
-trustless cross-chain entry and prize funding. Hackathon submission: BUIDL CTC 2026 Fall,
-Gaming track.
+A browser FPS with a staking layer on Creditcoin, using the Attestcoin Protocol for trustless
+cross-chain entry and prize funding. Hackathon submission: BUIDL CTC 2026 Fall, Gaming track.
 
 ## Layout
 
-| Path | What it is |
-| --- | --- |
-| `game/doodleshooter/` | The game. Vanilla ES modules, three.js vendored, **no build step**. |
-| `contracts/` | Foundry. Four UUPS contracts on Creditcoin, one plain contract on Sepolia. |
-| `server/` | `ink-monitor`: watches runs over WebSocket, signs results, relays Attestcoin proofs. |
-| `docs/` | `brainstorms/` design docs, `plans/` implementation plans. |
+| Path | What it is | CLAUDE.md |
+| --- | --- | --- |
+| `game/doodleshooter/` | The game. Vanilla ES modules, three.js and AppKit vendored, **no build step**. | [yes](game/doodleshooter/CLAUDE.md) · [module map](game/doodleshooter/src/CLAUDE.md) |
+| `contracts/` | Foundry. Four UUPS contracts on Creditcoin, one plain contract on Sepolia. | [yes](contracts/CLAUDE.md) |
+| `server/` | `ink-monitor`: run monitor over WebSocket + Attestcoin relayer. | [yes](server/CLAUDE.md) |
+| `docs/` | Design docs and implementation plans. | [yes](docs/CLAUDE.md) |
+| `tools/` | `bundle-appkit.sh` — one-time author tool, not a game build step. | — |
 
 ## Phase gate — read this before touching multiplayer
 
-**Online / peer-to-peer multiplayer is deferred.** Do not modify `src/net.js`, `src/players.js`,
-or any free-for-all code path in `src/main.js`.
+**Online / peer-to-peer multiplayer is deferred.** Do not modify `src/net.js`, `src/players.js`, or
+any free-for-all code path in `src/main.js`.
 
-The gate lifts only when offline bot mode works end to end: translated to English, seeded from
-an on-chain seed, staked, monitored by `ink-monitor`, settled on-chain, and paid out. When that
-is verified working, **edit this section explicitly** to record that the gate is lifted, then
-begin Phase 2.
+The gate lifts only when offline bot mode works end to end: translated, seeded from the chain,
+staked, monitored, settled and paid out. When that is verified, **edit this section explicitly** to
+record it, then begin Phase 2.
 
-The online code is left intact and gated off, not deleted. It is Phase 2 material.
+Phase 2 needs **no contract change**: `settleRun` verifies N-of-M attestations, so moving from the
+monitor key to peer quorum is `setAttestor` plus `setThreshold(ceil(2n/3))`. A test proves it.
 
 ## Hard rules
 
-- **All code, comments, identifiers and documentation in English.** The game shipped with Chinese
-  UI strings for a while; they have been reverted. `game/doodleshooter/test/english-only.test.js`
-  guards this — do not reintroduce any CJK text.
+- **All code, comments, identifiers and documentation in English.**
+  `game/doodleshooter/test/english-only.test.mjs` enforces it.
 - **Never add a build step or package manager to `game/doodleshooter/`.** It must stay a static
-  folder. New libraries are vendored as ES modules into `vendor/`, exactly as three.js and peerjs
-  are. Pre-bundling a dependency once, by hand, into `vendor/` is fine; requiring a build to run
-  the game is not.
-- **Never commit `.env`.** `contracts/.env` holds a live private key and is gitignored.
-- **Contracts are UUPS-upgradeable and must be verified on Blockscout.** Non-negotiable.
-- **Tests before implementation.** Contracts use Foundry; the game and server use `node --test`.
+  folder. Libraries are vendored as ES modules into `vendor/`. Pre-bundling one by hand into
+  `vendor/` is fine; requiring a build to *run* the game is not.
+- **Never commit `.env`.** `contracts/.env` and `server/.env` hold live private keys.
+- **Contracts are UUPS-upgradeable and verified on Blockscout.** Non-negotiable.
+- **Tests before implementation.** Foundry for contracts, `node --test` elsewhere.
+- **Every run is staked.** `begin()` refuses without an active on-chain run. Do not add a free-play
+  path — including "just for testing".
+
+## Deployed and live
+
+| Contract | Chain | Address |
+| --- | --- | --- |
+| `ArenaEscrow` | Creditcoin | `0xD63CbB36D1d25f44c653Ac5c6990B6B219f92Ee7` |
+| `DoodleGateASC` | Creditcoin | `0xd6565056853e4627f26B4bB4c1AEF7e9248f09dF` |
+| `USDT` (mock) | Creditcoin | `0x47dcAB80A108d6048059562AFF7d76aB3cbFA5B1` |
+| `SeasonRegistry` | Creditcoin | `0xc588f37d165dd2B80AD95532aC5a8a975C732050` |
+| `DoodleGate` | Sepolia | `0x56CeD9fD5E49C1Aba1371D7aDe383DD16da76484` |
+
+Owner / deployer `0x56A2950ddE6B1040d1DCC4b4C4Fc314Bd56eFB0E` ·
+attestor `0xFd2ade73561E4700654C9c21932Dda8495e58665` (signs `RunResult` only, never an owner).
+
+Full table with explorer links in `contracts/DEPLOYMENT.md`.
 
 ## Key facts
 
@@ -49,24 +64,26 @@ The online code is left intact and gated off, not deleted. It is Phase 2 materia
 | ChainInfo precompile | `0x0000000000000000000000000000000000000FD3` |
 | Proof Builder API | `https://prover.cc3-testnet.creditcoin.network` |
 | Ethereum Sepolia source chainKey | `1` (**not** `11155111`) |
-| Native token | tCTC |
-| Reown AppKit project id | `b56e18d47c72ab683b10814fe9495694` (Reown's public docs id — **localhost only**; register a real project before deploying to a domain) |
+| EVM target | `cancun` minus blob opcodes — see `contracts/CLAUDE.md` |
+| Reown AppKit project | `4553a4639c46b13a8f3da08c527a28e5` (riguwa.xyz) |
+| Production domain | `riguwa.xyz` · monitor at `wss://monitor.riguwa.xyz` |
 
-## Repository history
+## Things that bit us, so they do not bite you again
 
-This was three separate git repositories until 2026-09-13. The game's original 43-commit history
-is preserved as a bundle outside the tree:
-
-```
-~/Documents/GitHub/riguwagame-game-history-backup.bundle
-git clone riguwagame-game-history-backup.bundle recovered-game
-```
-
-That history is where the original English UI strings came from — commit `8d8fad9` had translated
-the whole game to Chinese, and its parent is the English original.
+- **The monitor wallet needs tCTC.** It submits relay and settlement transactions. A fresh attestor
+  key fails everything with `gas required exceeds allowance 0`.
+- **Attestation lag is 20–40 minutes.** The SDK's default `waitUntilHeightAttested` timeout is far
+  shorter and silently drops a paid entry. Ours is an hour; `npm run relay -- <txHash>` recovers one.
+- **Keep the pool ahead of the cap.** `startRun` reserves `stake x 3`, so the pool must hold at
+  least `maxStake x 3` free or the advertised cap reverts with `PoolTooSmall` — which wallets
+  report as an opaque "internal error".
+- **`forge test --fork-url` cannot fork Creditcoin** (`prevrandao not set`). Use
+  `contracts/script/check-live.sh`.
+- **Proxy verification needs `--skip-is-verified-check`.** All four `ERC1967Proxy` deployments share
+  identical runtime bytecode, so forge wrongly reports three of them as already verified.
 
 ## Documents
 
-Read `docs/brainstorms/2026-09-13-inkstake-arena-design.md` before making architectural changes.
-It records why the trust model, the phase split and the pool-solvency design are what they are.
-Implementation plans live in `docs/plans/`.
+`docs/brainstorms/2026-09-13-inkstake-arena-design.md` records why the trust model, the phase split
+and the pool-solvency design are what they are. Read it before changing anything architectural.
+`docs/ATTESTCOIN_INTEGRATION.md` is the submission's technical integration document.

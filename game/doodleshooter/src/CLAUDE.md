@@ -1,10 +1,10 @@
 # Module map
 
-Import order roughly follows dependency order: `util` and `render` are leaves, `main` is the root.
+Import order roughly follows dependency order: `prng` and `util` are leaves, `main` is the root.
 
 | File | Lines | Responsibility |
 | --- | --- | --- |
-| `main.js` | ~830 | Bootstrap and game loop. Solo waves, lobbies, checkpoints, scoring, screens. |
+| `main.js` | ~900 | Bootstrap and game loop. Waves, screens, scoring, **the stake panel and settlement**. |
 | `enemies.js` | ~800 | Enemy types, AI states, bosses, the enemy manager. |
 | `level.js` | ~470 | Level construction. Merged ink geometry plus axis-aligned box colliders. |
 | `player.js` | ~440 | First-person player: movement, grapple, camera feel, health, weapons. |
@@ -18,24 +18,32 @@ Import order roughly follows dependency order: `util` and `render` are leaves, `
 | `input.js` | ~140 | Unified keyboard/mouse and gamepad input. |
 | `hud.js` | ~120 | DOM heads-up display, drawn in pen style over the canvas. |
 | `nav.js` | ~115 | Navigation grid generated from the collision world. |
-| `util.js` | ~90 | Shared math helpers **and the seeded PRNG**. |
+| `util.js` | ~70 | Shared math helpers. Re-exports the PRNG. |
+| `prng.js` | ~35 | **Seeded randomness. Zero dependencies on purpose.** |
+| `chain/config.js` | ~110 | Addresses, ABIs, chain params, Reown id, monitor URL, deployment overrides. |
+| `chain/wallet.js` | ~70 | Reown AppKit + `@wagmi/core`. `createAppKit` runs once at module scope. |
+| `chain/arena.js` | ~160 | Contract calls, balance/pool reads, decoded contract errors. |
+| `net/monitor.js` | ~65 | WebSocket client for ink-monitor. |
 
 ## Randomness
 
-All gameplay randomness goes through `rand`, `randInt` and `choose` in `util.js`, which are
-backed by a seeded PRNG (mulberry32, seeded by folding a hex seed with FNV-1a). Call
-`setSeed(hexString)` at run start to make a run reproducible; the seed comes from the on-chain
-`RunStarted` event once staking lands.
+All gameplay randomness goes through `rand`, `randInt`, `choose` and `random`, which live in
+**`prng.js`** — dependency-free so it can be unit tested under Node and mirrored by the server.
+`util.js` re-exports them, so the 243 existing call sites are untouched. `util.js` itself imports
+three.js, which is why the PRNG cannot live there.
 
-**Never call `Math.random()` directly for anything that affects gameplay.** Purely cosmetic
-jitter — particle scatter, audio detune — may use it, and is marked with a comment where it does.
+`setSeed(hexString)` makes a run reproducible. A staked run takes its seed from the on-chain
+`RunStarted` event via `game.pendingSeed`.
+
+**Never call `Math.random()` directly for anything that affects gameplay.** Purely cosmetic jitter —
+particle scatter, camera shake, audio detune, the default player name — may, and does.
 
 ## Context object
 
-`main.js` builds a single `ctx` object threaded through every system:
+`main.js` builds a single `ctx` threaded through every system:
 `{ scene, camera, world, level, nav, input, hud, effects, audio, renderer, game, player, enemies }`.
-`window.__game` exposes it for debugging in the browser console — handy for `__game.begin()`,
-`__game.jumpToWave(10)` and inspecting `__game.game.pendingSeed`.
+`window.__game` exposes it for debugging — but `begin()` still refuses without an active stake, so
+the console is not a free-play door either.
 
 ## Naming
 

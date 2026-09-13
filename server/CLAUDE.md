@@ -11,8 +11,11 @@ Watches a solo run live and signs its outcome.
   state; bandwidth is negligible by design.
 - Rejects skipped waves, impossibly fast clears, kills beyond what the wave could spawn, and deaths
   claimed above the wave actually reached.
-- On run end, signs an EIP-712 `RunResult` and returns it. If the client vanished it submits
-  `settleRun` itself, so a stake is never left to time out.
+- On run end, signs an EIP-712 `RunResult` **and submits `settleRun` itself**. The player already
+  signed to stake; asking them to sign again to *receive* their payout is a poor trade, and a
+  declined signature used to leave the stake sitting until the TTL. If the monitor's own submission
+  fails it hands the signature and the result to the client, which submits as a fallback rather
+  than stranding the stake.
 
 ### Why wave checks are bounds, not a replay
 
@@ -42,9 +45,9 @@ This is what makes cross-chain entry **gasless** — the player never needs tCTC
 dropped. `config.attestWaitMs` defaults to an hour. Use `npm run relay -- <txHash>` to recover a
 transaction whose relay timed out.
 
-**The monitor wallet needs tCTC.** It submits both relay and fallback-settle transactions. A fresh
+**The monitor wallet needs tCTC.** It submits the relay transaction AND every settlement. A fresh
 attestor key has zero balance and every submission fails with `gas required exceeds allowance 0`.
-Fund it.
+Fund it, and watch it — if it empties, settlement falls back to asking the player to sign.
 
 ## The ethers exception
 
@@ -75,6 +78,12 @@ npm run dev                 # monitor + relayer
 npm run check:attestcoin    # prove the SDK reaches the live precompile
 npm run relay -- <txHash>   # relay one already-paid Sepolia transaction
 ```
+
+## Production
+
+Runs on the VPS behind nginx as `wss://monitor.riguwa.xyz` (TLS terminated by nginx, proxied to
+`127.0.0.1:8920`). That box also hosts unrelated projects — **only ever add an nginx server block
+and a systemd unit; never edit the existing ones.** See `docs/DEPLOYMENT.md`.
 
 ## Live configuration
 
