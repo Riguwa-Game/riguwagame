@@ -47,14 +47,14 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 @keyframes di { to { opacity: 0; } }
 .screen { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; background: rgba(246, 243, 230, .55); }
 .screen.show { display: flex; }
-.panel { text-align: center; max-width: 980px; padding: 26px 48px; background: rgba(250, 248, 238, .93); box-shadow: 6px 6px 0 rgba(26, 48, 192, .15); border: 3px solid var(--ink); border-radius: 12px 18px 10px 16px / 16px 10px 18px 12px; transform: rotate(-.6deg); }
-.panel h1 { font-size: 92px; margin: 0; letter-spacing: 3px; line-height: 1; }
-.panel h2 { font-size: 36px; margin: 4px 0 14px; font-weight: normal; }
-.panel .cols { display: flex; gap: 46px; justify-content: center; text-align: left; font-size: 22px; line-height: 1.35; }
-.panel .cols b { color: var(--red); } .colhead { font-size: 26px; border-bottom: 2px solid var(--ink); margin-bottom: 4px; }
-.panel .go { font-size: 34px; margin-top: 18px; animation: blink 1.2s infinite; } @keyframes blink { 50% { opacity: .35; } }
-.panel .stats { font-size: 30px; line-height: 1.4; } .panel .stats b { color: var(--red); }
-.panel .tip { font-size: 21px; opacity: .8; margin-top: 8px; }
+.panel { text-align: center; max-width: min(980px, 94vw); max-height: 92vh; overflow-y: auto; overflow-x: hidden; padding: clamp(12px, 2.4vh, 26px) clamp(18px, 4vw, 48px); background: rgba(250, 248, 238, .93); box-shadow: 6px 6px 0 rgba(26, 48, 192, .15); border: 3px solid var(--ink); border-radius: 12px 18px 10px 16px / 16px 10px 18px 12px; transform: rotate(-.6deg); }
+.panel h1 { font-size: clamp(30px, 6.8vh, 92px); margin: 0; letter-spacing: 3px; line-height: 1; }
+.panel h2 { font-size: clamp(15px, 2.7vh, 36px); margin: clamp(2px, .4vh, 4px) 0 clamp(6px, 1.4vh, 14px); font-weight: normal; }
+.panel .cols { display: flex; gap: clamp(18px, 4vw, 46px); justify-content: center; text-align: left; font-size: clamp(11px, 1.7vh, 20px); line-height: 1.22; }
+.panel .cols b { color: var(--red); } .colhead { font-size: clamp(13px, 2vh, 24px); border-bottom: 2px solid var(--ink); margin-bottom: 4px; }
+.panel .go { font-size: clamp(16px, 3.2vh, 34px); margin-top: clamp(8px, 1.8vh, 18px); animation: blink 1.2s infinite; } @keyframes blink { 50% { opacity: .35; } }
+.panel .stats { font-size: clamp(16px, 2.9vh, 30px); line-height: 1.35; } .panel .stats b { color: var(--red); }
+.panel .tip { font-size: clamp(13px, 2vh, 21px); opacity: .8; margin-top: 8px; }
 .weapon { font-size: 36px; } .hint { font-size: 20px; opacity: .8; }
 .combo { font-size: 26px; color: var(--red); min-height: 30px; }
 .timer { font-size: 24px; color: var(--red); }
@@ -76,13 +76,13 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .tip.show { opacity: .9; }
 .tip b { color: var(--red); }
 #hud.nogame .tip, #hud.nogame .bossbar { display: none; }
-.settings { display: flex; flex-direction: column; gap: 4px; align-items: center; font-size: 21px; margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.settings { display: flex; flex-direction: column; gap: 1px; align-items: center; font-size: clamp(12px, 1.7vh, 21px); margin-top: clamp(6px, 1.2vh, 12px); border-top: 2px solid var(--ink); padding-top: clamp(5px, 1vh, 10px); }
 .settings label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .settings input[type=range] { width: 220px; accent-color: #1a30c0; }
 .settings input[type=checkbox] { width: 17px; height: 17px; accent-color: #1a30c0; }
 .settings b { color: var(--red); min-width: 56px; text-align: left; }
-.settings .k { opacity: .6; font-size: 17px; }
-.beststat { font-size: 22px; opacity: .8; margin-top: 4px; }
+.settings .k { opacity: .6; font-size: clamp(11px, 1.6vh, 17px); }
+.beststat { font-size: clamp(13px, 1.9vh, 22px); opacity: .8; margin-top: 3px; }
 /* sniper scope */
 .scope { position: absolute; inset: 0; opacity: 0; transition: opacity .1s; pointer-events: none; }
 .scope.on { opacity: 1; }
@@ -120,8 +120,8 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 /* map picker */
 .mapsel { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 2px solid var(--ink); flex-wrap: wrap; }
 .mapsel > span { font-size: 20px; opacity: .75; }
-.mapbtn { font: inherit; font-size: 20px; color: var(--ink); background: transparent; border: 2.5px solid var(--ink); border-radius: 7px 10px 6px 9px / 10px 6px 9px 7px; padding: 4px 12px; cursor: pointer; opacity: .55; display: flex; flex-direction: column; align-items: center; line-height: 1.1; transform: rotate(-.6deg); }
-.mapbtn i { font-style: normal; font-size: 14px; opacity: .75; }
+.mapbtn { font: inherit; font-size: clamp(13px, 1.9vh, 20px); color: var(--ink); background: transparent; border: 2.5px solid var(--ink); border-radius: 7px 10px 6px 9px / 10px 6px 9px 7px; padding: 4px 12px; cursor: pointer; opacity: .55; display: flex; flex-direction: column; align-items: center; line-height: 1.1; transform: rotate(-.6deg); }
+.mapbtn i { font-style: normal; font-size: clamp(10px, 1.3vh, 14px); opacity: .75; }
 .mapbtn:hover { opacity: .85; }
 .mapbtn.on { opacity: 1; color: var(--paper); background: var(--ink); }
 
@@ -156,9 +156,9 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 #hud.pad .kbonly, #hud:not(.pad) .padonly { display: none; }
 
 /* ---- main menu, online panel, scoreboard overlay ---- */
-.mainbtns { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin: 14px 0 6px; }
-.mainbtns button { font: inherit; font-size: 30px; color: var(--paper); background: var(--ink); border: 3px solid var(--ink); border-radius: 9px 13px 8px 12px / 12px 8px 11px 9px; padding: 10px 34px; cursor: pointer; transform: rotate(-.8deg); line-height: 1.05; }
-.mainbtns button i { display: block; font-style: normal; font-size: 16px; opacity: .8; letter-spacing: 1px; }
+.mainbtns { display: flex; gap: clamp(8px, 1.8vh, 18px); justify-content: center; flex-wrap: wrap; margin: clamp(6px, 1.4vh, 14px) 0 6px; }
+.mainbtns button { font: inherit; font-size: clamp(17px, 2.9vh, 30px); color: var(--paper); background: var(--ink); border: 3px solid var(--ink); border-radius: 9px 13px 8px 12px / 12px 8px 11px 9px; padding: 10px 34px; cursor: pointer; transform: rotate(-.8deg); line-height: 1.05; }
+.mainbtns button i { display: block; font-style: normal; font-size: clamp(11px, 1.5vh, 16px); opacity: .8; letter-spacing: 1px; }
 .mainbtns button:nth-child(2) { transform: rotate(.7deg); background: var(--red); border-color: var(--red); }
 .mainbtns button:hover { filter: brightness(1.15); }
 .mainbtns:has(.start) { flex-direction: column; align-items: center; gap: 12px; }
@@ -166,21 +166,21 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .mainbtns button.start i { font-size: 18px; margin-top: 4px; }
 .mainbtns button.start:hover { transform: rotate(-1deg) scale(1.03); }
 .mainbtns button.start + button { transform: rotate(.7deg); }
-.online { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 6px; }
-.online .sub { font-size: 19px; opacity: .75; }
+.online { display: flex; flex-direction: column; gap: clamp(6px, 1.2vh, 12px); align-items: center; margin-top: 6px; }
+.online .sub { font-size: clamp(12px, 1.8vh, 19px); opacity: .75; }
 .online .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
 .online .row.split { gap: 26px; }
-.online button { font: inherit; font-size: 22px; color: var(--paper); background: var(--ink); border: 2.5px solid var(--ink); border-radius: 7px 10px 6px 9px / 10px 6px 9px 7px; padding: 6px 18px; cursor: pointer; }
+.online button { font: inherit; font-size: clamp(14px, 2.1vh, 22px); color: var(--paper); background: var(--ink); border: 2.5px solid var(--ink); border-radius: 7px 10px 6px 9px / 10px 6px 9px 7px; padding: 6px 18px; cursor: pointer; }
 .online button.alt { color: var(--ink); background: transparent; }
-.online button.big { font-size: 26px; padding: 8px 26px; transform: rotate(-.6deg); }
+.online button.big { font-size: clamp(16px, 2.5vh, 26px); padding: 8px 26px; transform: rotate(-.6deg); }
 .online button:disabled { opacity: .4; cursor: default; }
 .online button:hover:not(:disabled) { filter: brightness(1.15); }
 .online input[type=text] { font: inherit; font-size: 26px; width: 150px; text-align: center; letter-spacing: 5px; text-transform: uppercase; color: var(--ink); border: 2.5px solid var(--ink); border-radius: 6px 9px 6px 8px; background: transparent; padding: 3px 6px; }
 .online input.namebox { letter-spacing: 0; text-transform: none; font-size: 22px; width: 180px; }
 .online .radio { display: flex; gap: 14px; font-size: 19px; }
 .online .radio label { display: flex; gap: 5px; align-items: center; cursor: pointer; }
-.online .status { min-height: 26px; font-size: 20px; color: var(--red); }
-.online .hint { font-size: 17px; opacity: .7; max-width: 520px; text-align: center; }
+.online .status { min-height: 20px; font-size: clamp(12px, 1.9vh, 20px); color: var(--red); }
+.online .hint { font-size: clamp(11px, 1.6vh, 17px); opacity: .7; max-width: 520px; text-align: center; }
 .online .code { font-size: 52px; letter-spacing: 10px; }
 .online .plist { min-width: 340px; }
 .online .plist .host span:first-child::after { content: ' · host'; opacity: .6; font-size: 16px; }
@@ -213,24 +213,24 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .lobbyrow button { font-size: 18px; padding: 3px 12px; }
 
 /* staked run panel - reuses the game's own button components (.online, .mapbtn) */
-.stake { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 12px; font-size: 21px; }
-.stake .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.stake input[type=number] { font: inherit; font-size: 20px; color: var(--ink); background: transparent; border: 2px solid var(--ink); border-radius: 6px 8px 5px 7px; padding: 3px 8px; width: 4.5em; text-align: center; }
-.stake .hint { font-size: 17px; opacity: .7; }
-.stake .status { font-size: 18px; opacity: .85; min-height: 1.2em; color: var(--red); }
+.stake { display: flex; flex-direction: column; gap: clamp(3px, .8vh, 9px); align-items: center; margin-top: clamp(5px, 1vh, 11px); border-top: 2px solid var(--ink); padding-top: clamp(5px, 1vh, 11px); font-size: clamp(12px, 1.8vh, 20px); }
+.stake .row { display: flex; align-items: center; gap: clamp(5px, 1vw, 10px); flex-wrap: wrap; justify-content: center; margin: 0; }
+.stake input[type=number] { font: inherit; font-size: clamp(13px, 1.9vh, 20px); color: var(--ink); background: transparent; border: 2px solid var(--ink); border-radius: 6px 8px 5px 7px; padding: 3px 8px; width: 4.5em; text-align: center; }
+.stake .hint { font-size: clamp(11px, 1.6vh, 17px); opacity: .7; }
+.stake .status { font-size: clamp(11px, 1.7vh, 18px); min-height: 0; opacity: .85; min-height: 1.2em; color: var(--red); }
 .stake b { color: var(--red); }
 .stake .tokens { display: flex; gap: 12px; align-items: center; opacity: .85; }
 .stake .tokens img { transform: rotate(-3deg); }
-.stake .mapbtn { flex-direction: row; gap: 7px; font-size: 19px; padding: 4px 13px; }
+.stake .mapbtn { flex-direction: row; gap: 6px; font-size: clamp(12px, 1.8vh, 19px); padding: 4px 13px; }
 .stake .mapbtn img { display: block; }
 .stake .mapbtn.on img { filter: brightness(1.6) saturate(.4); }
 .stake a { color: var(--red); }
-.stake .balances { gap: 18px; font-size: 19px; opacity: .9; }
+.stake .balances { gap: clamp(10px, 2vw, 18px); font-size: clamp(12px, 1.8vh, 19px); opacity: .9; }
 .stake .balances span { display: inline-flex; align-items: center; gap: 6px; }
 .stake .balances img { transform: rotate(-3deg); }
 .stake .hint.warn { color: var(--red); opacity: 1; }
 .stake button:disabled { opacity: .4; cursor: default; }
-.stake .payout { display: flex; flex-direction: column; align-items: center; line-height: 1.05; font-size: 46px; }
-.stake .payout span { font-size: 19px; opacity: .75; margin-top: 6px; letter-spacing: .5px; }
+.stake .payout { display: flex; flex-direction: column; align-items: center; line-height: 1.05; font-size: clamp(26px, 5vh, 46px); }
+.stake .payout span { font-size: clamp(12px, 1.8vh, 19px); opacity: .75; margin-top: 6px; letter-spacing: .5px; }
 .stake .payout.win { color: var(--ink); }
 .stake .payout.loss { color: var(--red); }

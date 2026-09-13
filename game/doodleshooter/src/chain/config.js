@@ -1,12 +1,32 @@
 // Chain, wallet and contract configuration.
 import { defineChain, parseAbi } from 'appkit';
 
-// Reown AppKit project id.
-// NOTE: this is Reown's PUBLIC DOCUMENTATION project id, intended for localhost only. Before
-// deploying to a real domain, create a project at https://dashboard.reown.com, put its id here,
-// and register the deployed domain there - wallets verify `metadata.url` against it, and a
-// mismatch shows up as a failed or untrusted connection.
-export const REOWN_PROJECT_ID = 'b56e18d47c72ab683b10814fe9495694';
+// ---------------------------------------------------------------------------------------------
+// Deployment settings. `window.INKSTAKE_CONFIG` can override either of these without a rebuild -
+// set it in a <script> before main.js, or edit the defaults here.
+// ---------------------------------------------------------------------------------------------
+const override = (typeof window !== 'undefined' && window.INKSTAKE_CONFIG) || {};
+
+const DEMO_PROJECT_ID = 'b56e18d47c72ab683b10814fe9495694';
+
+/// Reown AppKit project id.
+/// DEMO_PROJECT_ID is Reown's PUBLIC DOCUMENTATION id and only works on localhost. On a real
+/// domain, wallets verify `metadata.url` against the domains registered for the project, so a
+/// deployment using it will fail or be flagged untrusted. Create a project at
+/// https://dashboard.reown.com, register the domain, and set the id here.
+export const REOWN_PROJECT_ID = override.reownProjectId || DEMO_PROJECT_ID;
+
+const isLocal =
+  typeof location !== 'undefined' &&
+  /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+
+if (typeof console !== 'undefined' && REOWN_PROJECT_ID === DEMO_PROJECT_ID && !isLocal) {
+  console.error(
+    '[inkstake] Reown demo project id in use on a non-localhost origin. Wallet connection will ' +
+    'fail or be flagged untrusted. Register a project at https://dashboard.reown.com and set ' +
+    'window.INKSTAKE_CONFIG = { reownProjectId: "..." } before main.js.',
+  );
+}
 
 export const CHAIN = {
   id: 102031,
@@ -34,7 +54,15 @@ export const ADDRESSES = {
   seasonRegistry: '0xc588f37d165dd2B80AD95532aC5a8a975C732050',
 };
 
-export const MONITOR_WS = 'ws://127.0.0.1:8920';
+/// ink-monitor WebSocket endpoint.
+/// A page served over https CANNOT open a ws:// socket - browsers block it as mixed content - so
+/// a deployed monitor must be wss:// behind a TLS reverse proxy. By default we assume it lives at
+/// monitor.<the page's domain>; override with window.INKSTAKE_CONFIG.monitorWs.
+export const MONITOR_WS =
+  override.monitorWs ||
+  (isLocal
+    ? 'ws://127.0.0.1:8920'
+    : `wss://monitor.${typeof location !== 'undefined' ? location.hostname.replace(/^www\./, '') : ''}`);
 
 // Native tCTC is address(0) in the escrow.
 export const NATIVE = '0x0000000000000000000000000000000000000000';
