@@ -6,12 +6,13 @@
   "description": "Run monitor and Attestcoin relayer for Inkstake Arena",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server/src/index.js",
+    "start": "node dist/src/index.js",
     "dev": "node --experimental-strip-types src/index.ts",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check:attestcoin": "node --experimental-strip-types src/check-attestcoin.ts",
-    "relay": "node --experimental-strip-types scripts/relay-once.ts"
+    "relay": "node --experimental-strip-types scripts/relay-once.ts",
+    "relay:prod": "node dist/scripts/relay-once.js"
   },
   "dependencies": {
     "@gluwa/usc-sdk": "0.18.0",

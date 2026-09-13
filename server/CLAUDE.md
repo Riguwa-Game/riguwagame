@@ -77,13 +77,24 @@ npm run typecheck
 npm run dev                 # monitor + relayer
 npm run check:attestcoin    # prove the SDK reaches the live precompile
 npm run relay -- <txHash>   # relay one already-paid Sepolia transaction
+npm run build               # tsc -> dist/src/index.js, what production runs
 ```
 
 ## Production
 
 Runs on the VPS behind nginx as `wss://monitor.riguwa.xyz` (TLS terminated by nginx, proxied to
-`127.0.0.1:8920`). That box also hosts unrelated projects — **only ever add an nginx server block
-and a systemd unit; never edit the existing ones.** See `docs/DEPLOYMENT.md`.
+`127.0.0.1:8920`). The game itself is not here — it is static on Vercel.
+
+Deployed from `/opt/ink-monitor` as the system user `inkmonitor`, on a Node tarball at `/opt/node`
+that is deliberately not on the system `PATH`. The unit and the nginx block live in `deploy/`.
+
+Two rules, both because that box also hosts unrelated projects on ~2 GB of RAM:
+
+- **Only ever add an nginx server block and a systemd unit; never edit the existing ones.**
+- **Build here, ship `dist/`.** Running `tsc` on the VPS risks an OOM that takes someone else's
+  service down. The unit's `MemoryMax=400M` exists for the same reason.
+
+See `docs/DEPLOYMENT.md`.
 
 ## Live configuration
 

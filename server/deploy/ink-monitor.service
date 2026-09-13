@@ -1,0 +1,44 @@
+[Unit]
+Description=Inkstake Arena run monitor and Attestcoin relayer
+Documentation=https://github.com/Lexirieru/riguwagame
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=inkmonitor
+Group=inkmonitor
+WorkingDirectory=/opt/ink-monitor
+Environment=NODE_ENV=production
+ExecStart=/opt/node/bin/node dist/src/index.js
+Restart=always
+RestartSec=5s
+
+# This VPS runs other people's projects on ~2 GB of RAM. Cap the monitor so a leak here can
+# never be the reason something else gets OOM-killed.
+MemoryHigh=250M
+MemoryMax=400M
+TasksMax=64
+
+# The service needs its own directory, the network, and nothing else.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ink-monitor
+
+[Install]
+WantedBy=multi-user.target

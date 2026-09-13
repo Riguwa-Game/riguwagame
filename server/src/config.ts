@@ -18,8 +18,8 @@ export const config = {
   doodleGateSepolia: process.env.DOODLE_GATE_SEPOLIA ?? '',
   wsPort: Number(process.env.WS_PORT ?? 8920),
   /// Bind to loopback only. nginx terminates TLS and proxies to us, so there is never a reason to
-  /// listen on a public interface - and the VPS has no firewall, so binding 0.0.0.0 would put this
-  /// straight on the internet.
+  /// listen on a public interface. ufw also denies 8920 from outside, but the bind is the real
+  /// control: a firewall rule is one `ufw allow` away from being wrong.
   wsHost: process.env.WS_HOST ?? '127.0.0.1',
   /// Origins allowed to open a run socket. A browser sends Origin on every WebSocket handshake,
   /// so this keeps other sites from driving the monitor with our attestor key.
