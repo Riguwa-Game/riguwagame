@@ -1,0 +1,9 @@
+test/
+CLAUDE.md
+src/CLAUDE.md
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+serve.py
+.claude/
