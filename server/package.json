@@ -10,7 +10,8 @@
     "dev": "node --experimental-strip-types src/index.ts",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check:attestcoin": "node --experimental-strip-types src/check-attestcoin.ts"
+    "check:attestcoin": "node --experimental-strip-types src/check-attestcoin.ts",
+    "relay": "node --experimental-strip-types scripts/relay-once.ts"
   },
   "dependencies": {
     "@gluwa/usc-sdk": "0.18.0",

@@ -21,25 +21,9 @@ type ProofData = {
   continuityProof: { lowerEndpointDigest: string; roots: string[] };
 };
 
-/// Watches DoodleGate on Sepolia and relays each event to Creditcoin as a proven query.
-/// This is what makes cross-chain entry gasless: the player never needs tCTC.
-export function startRelayer(): void {
-  if (!config.sepoliaRpc || !config.doodleGateSepolia) {
-    console.log('[relayer] source chain not configured, skipping');
-    return;
-  }
-
-  const sepoliaClient = createPublicClient({
-    chain: sepolia,
-    transport: http(config.sepoliaRpc),
-  });
+/// Builds the relay function. Exported so scripts/relay-once.ts can drive a single transaction.
+export function makeRelayer() {
   const wallet = walletClient();
-
-  // ethers, only for the SDK.
-  // The cast works around a TypeScript nominal-privates quirk: JsonRpcProvider extends
-  // JsonRpcApiProvider at runtime, but their `#private` brands are not structurally assignable
-  // across the SDK's declaration boundary. Runtime behaviour is verified by
-  // `npm run check:attestcoin`, which drives this exact provider against the live precompile.
   const creditcoinProvider = new JsonRpcProvider(config.creditcoinRpc);
   const chainInfoProvider = new chainInfo.PrecompileChainInfoProvider(
     creditcoinProvider as unknown as ConstructorParameters<
@@ -51,25 +35,23 @@ export function startRelayer(): void {
     config.proofBuilderUrl,
   );
 
-  const relay = async (action: number, txHash: Hex, height: bigint) => {
+  return async function relay(action: number, txHash: Hex, height: bigint): Promise<void> {
     const label = `${txHash.slice(0, 10)}…@${height}`;
     console.log(`[relayer] ${label} action=${action}: waiting for attestation`);
-
     try {
-      // 1. Wait for Creditcoin's attestors to cover this block.
-      await chainInfoProvider.waitUntilHeightAttested(config.sourceChainKey, Number(height));
+      await chainInfoProvider.waitUntilHeightAttested(
+        config.sourceChainKey,
+        Number(height),
+        config.attestPollMs,
+        config.attestWaitMs,
+      );
       console.log(`[relayer] ${label}: attested, fetching proof`);
-
-      // 2. Fetch Merkle and continuity proofs. Promptly: a fresh block needs a ~10-hash
-      //    continuity proof, a day-old one needs ~1000 and costs more than 10x as much.
       const proof = await proofBuilder.getProof(txHash);
       if (!proof.success || !proof.data) {
         console.error(`[relayer] ${label}: proof generation failed: ${proof.error}`);
         return;
       }
       const d = proof.data as unknown as ProofData;
-
-      // 3. Submit. The ASC verifies the proof itself - we are a courier, not an oracle.
       const hash = await wallet.writeContract({
         address: config.doodleGateAsc as Hex,
         abi: doodleGateAscAbi,
@@ -90,6 +72,21 @@ export function startRelayer(): void {
       console.error(`[relayer] ${label} failed:`, err instanceof Error ? err.message : err);
     }
   };
+}
+
+/// Watches DoodleGate on Sepolia and relays each event to Creditcoin as a proven query.
+/// This is what makes cross-chain entry gasless: the player never needs tCTC.
+export function startRelayer(): void {
+  if (!config.sepoliaRpc || !config.doodleGateSepolia) {
+    console.log('[relayer] source chain not configured, skipping');
+    return;
+  }
+
+  const sepoliaClient = createPublicClient({
+    chain: sepolia,
+    transport: http(config.sepoliaRpc),
+  });
+  const relay = makeRelayer();
 
   const onLogs = (action: number) => (logs: Log[]) => {
     for (const log of logs) {
