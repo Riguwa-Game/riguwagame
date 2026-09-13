@@ -9,6 +9,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {IArenaEscrow} from "./interfaces/IArenaEscrow.sol";
 import {ISeasonRegistry} from "./interfaces/ISeasonRegistry.sol";
@@ -43,8 +44,17 @@ contract ArenaEscrow is
     error NotFunder();
     error InsufficientFree(uint256 free, uint256 requested);
     error BadTiers();
+    error RunNotActive();
+    error PlayerMismatch();
+    error RunExpired();
+    error NotAttestor(address signer);
+    error DuplicateSigner(address signer);
+    error ThresholdNotMet(uint256 got, uint256 needed);
 
     uint32 public constant BPS_DENOMINATOR = 10_000;
+
+    bytes32 public constant RUN_RESULT_TYPEHASH =
+        keccak256("RunResult(bytes32 runId,address player,uint32 waveReached,uint64 score,uint64 endedAt)");
 
     /// @custom:storage-location erc7201:inkstake.storage.ArenaEscrow
     struct EscrowStorage {
@@ -210,10 +220,82 @@ contract ArenaEscrow is
         _pay(token, to, amount);
     }
 
+    // ---------------- settlement ----------------
+
+    /// @notice The EIP-712 digest an attestor signs. ink-monitor reproduces this shape off-chain.
+    function hashRunResult(RunResult calldata r) public view returns (bytes32) {
+        return _hashTypedDataV4(
+            keccak256(abi.encode(RUN_RESULT_TYPEHASH, r.runId, r.player, r.waveReached, r.score, r.endedAt))
+        );
+    }
+
+    /// @notice Settle a finished run. Anyone may submit; only the signatures matter.
+    function settleRun(RunResult calldata r, bytes[] calldata sigs) external nonReentrant {
+        EscrowStorage storage $ = _s();
+        Run storage run = $.runs[r.runId];
+
+        if (run.state != RunState.Active) revert RunNotActive();
+        if (run.player != r.player) revert PlayerMismatch();
+        if (block.timestamp > run.deadline) revert RunExpired();
+
+        _verifyAttestations($, r, sigs);
+
+        uint256 stake = run.stake;
+        uint256 reserved = run.reserved;
+        address token = run.token;
+        uint256 payout = (stake * multiplierBpsFor(r.waveReached)) / BPS_DENOMINATOR;
+
+        // Effects before interactions.
+        run.state = RunState.Settled;
+        delete $.activeRun[r.player];
+
+        Pool storage p = $.pools[token];
+        p.reserved -= reserved;
+        p.activeStake -= stake;
+        // Tier validation guarantees payout is either 0 or at least `stake`, so this cannot
+        // underflow and free never goes negative.
+        p.free += payout == 0 ? reserved + stake : reserved - (payout - stake);
+
+        $.seasonRegistry.recordRun(r.player, r.waveReached, r.score, token, stake, payout);
+        emit RunSettled(r.runId, r.player, r.waveReached, r.score, payout);
+
+        if (payout != 0) _pay(token, r.player, payout);
+    }
+
+    function _verifyAttestations(EscrowStorage storage $, RunResult calldata r, bytes[] calldata sigs)
+        private
+        view
+    {
+        bytes32 digest = hashRunResult(r);
+        uint256 n = sigs.length;
+        address[] memory seen = new address[](n);
+        uint256 count;
+
+        for (uint256 i; i < n; ++i) {
+            address signer = ECDSA.recover(digest, sigs[i]); // reverts on malleable or malformed
+            if (!$.attestors[signer]) revert NotAttestor(signer);
+            for (uint256 j; j < count; ++j) {
+                if (seen[j] == signer) revert DuplicateSigner(signer);
+            }
+            seen[count++] = signer;
+        }
+
+        if (count < $.threshold) revert ThresholdNotMet(count, $.threshold);
+    }
+
     // ---------------- admin ----------------
 
     function setMaxStake(address token, uint256 cap) external onlyOwner {
         _s().maxStake[token] = cap;
+    }
+
+    function setAttestor(address account, bool allowed) external onlyOwner {
+        _s().attestors[account] = allowed;
+    }
+
+    function setThreshold(uint256 newThreshold) external onlyOwner {
+        if (newThreshold == 0) revert BadTiers();
+        _s().threshold = newThreshold;
     }
 
     function setAsc(address asc_) external onlyOwner {
