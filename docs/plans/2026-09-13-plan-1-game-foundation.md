@@ -21,6 +21,44 @@
 
 ---
 
+## Execution record — completed 2026-09-13
+
+All tasks done, seven commits, `ceeeae7` through `54de5d1`. Four deviations from the plan as
+written, each made during execution:
+
+1. **Tasks 4-6 were replaced by a git restore.** The plan assumed hand-translation of ~150
+   strings. During Task 1 the child repository's history revealed commit `8d8fad9`
+   ("全面汉化" — full Chinese localisation), whose parent is the original English. Every added
+   line in that commit contained CJK and line counts were unchanged, proving a pure 1:1 string
+   substitution with no logic changes. Restoring the parent recovered the author's original
+   English byte-for-byte (174 insertions, 174 deletions — exactly symmetric) instead of a
+   re-translation. `index.html` needed a hybrid: English `lang`/`title` from the original, but
+   the vendored import map kept rather than reverting to the CDN URLs the original used.
+
+2. **Test files are `.mjs`, not `.js`.** Without a `package.json` Node reads a `.js` test as
+   CommonJS and the ESM import fails. Also: `node --test test/` (trailing slash) fails on
+   Node 24 — bare `node --test` is the working invocation. Both corrected in the plan text,
+   `test/README.md` and `game/doodleshooter/CLAUDE.md`.
+
+3. **The PRNG lives in `src/prng.js`, not `util.js`.** `util.js` imports `three`, which Node
+   cannot resolve without a `node_modules` the game must not gain. The PRNG is dependency-free
+   in its own module and `util.js` re-exports it, so all 243 existing `rand`/`randInt`/`choose`
+   call sites are untouched. This also makes the Plan 3 server mirror simpler.
+
+4. **Cosmetic `Math.random()` sites were not individually commented.** Per-line comments on
+   ~15 sites was noise; the policy is documented once in `game/doodleshooter/src/CLAUDE.md`.
+   Seeded: wave modifier and composition, spawn selection, pickup drops, parry deflect chance,
+   level prop layout, AI wander targets. Left unseeded: particle scatter, camera shake, audio
+   jitter, and the default player name (seeding that would give every player the same name).
+
+The game's original 43-commit history is preserved as a bundle at
+`~/Documents/GitHub/riguwagame-game-history-backup.bundle` and is restorable with `git clone`.
+
+**Not verified visually:** the top of the main menu and an actual played run. Chrome automation
+hit a persistent extension conflict. Everything else was verified — see "Done when" below.
+
+---
+
 ### Task 1: Collapse three repositories into one monorepo
 
 Today `riguwagame/` has zero commits, while `contracts/` and `game/doodleshooter/` each carry their own `.git`. The hackathon requires one GitHub repository URL with a README. Nested repositories would appear empty to a reviewer who clones normally.
