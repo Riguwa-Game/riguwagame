@@ -11,15 +11,24 @@ payment on-chain, with no oracle in between.
 
 <br/>
 
+[![Play](https://img.shields.io/badge/play-riguwa.xyz-ff6b35?style=for-the-badge&logo=firefoxbrowser&logoColor=white)](https://riguwa.xyz)
 [![Network](https://img.shields.io/badge/Creditcoin-testnet_·_102031-1f6feb?style=for-the-badge)](https://creditcoin-testnet.blockscout.com)
 [![Contracts](https://img.shields.io/badge/contracts-source_verified-2ea043?style=for-the-badge)](https://creditcoin-testnet.blockscout.com/address/0xD63CbB36D1d25f44c653Ac5c6990B6B219f92Ee7)
 [![Tests](https://img.shields.io/badge/tests-186_passing-2ea043?style=for-the-badge&logo=githubactions&logoColor=white)](#-tests)
 [![Track](https://img.shields.io/badge/track-Gaming-8957e5?style=for-the-badge)](https://dorahacks.io/hackathon/buidl-ctc-2026-fall/detail)
 
+**[▶ Play it — riguwa.xyz](https://riguwa.xyz)** ·
 **[Attestcoin Integration](docs/ATTESTCOIN_INTEGRATION.md)** ·
 **[Deployment](contracts/DEPLOYMENT.md)** ·
 **[Explorer](https://creditcoin-testnet.blockscout.com)** ·
 **[Attestcoin Docs](https://docs.attestcoin.org/)**
+
+<br/>
+
+<img src="docs/images/menu.jpg" alt="Doodle District title screen: a ballpoint-blue menu panel over a hand-drawn city, with a CONNECT WALLET button reading &quot;stake tCTC or USDT · win up to 3x&quot;" width="900">
+
+<sub>No models, no textures, no sound files. The paper, the ink, the hatching and the music are all
+generated in code — and every run behind that button is staked on-chain.</sub>
 
 </div>
 
@@ -69,6 +78,13 @@ Every contract is **source-verified on Blockscout**. Every claim below has a lin
 | **SeasonRegistry** — per-season leaderboard | [`0xc588f37d…5C732050`](https://creditcoin-testnet.blockscout.com/address/0xc588f37d165dd2B80AD95532aC5a8a975C732050) |
 | **USDT** — mock test stablecoin, 6 dp | [`0x47dcAB80…3cbFA5B1`](https://creditcoin-testnet.blockscout.com/address/0x47dcAB80A108d6048059562AFF7d76aB3cbFA5B1) |
 
+<img src="docs/images/verified-contract.png" alt="Blockscout showing ArenaEscrow with a green &quot;Contract source code verified (exact match)&quot; banner, detected as an EIP-1967 proxy, compiled with solc 0.8.30 targeting the cancun EVM" width="820">
+
+<sub><b>ArenaEscrow on Blockscout.</b> Verified exact-match, detected as an EIP-1967 proxy — the
+upgradeable requirement, met and checkable. All four proxies needed
+<code>--skip-is-verified-check</code>, because <code>ERC1967Proxy</code> runtime bytecode is
+identical across deployments and forge reports three of them as already verified.</sub>
+
 ### Source chain (Ethereum Sepolia)
 
 | Contract | Address |
@@ -84,6 +100,14 @@ Every contract is **source-verified on Blockscout**. Every claim below has a lin
 | 🏆 **A staked run paid out** | [`settleRun`](https://creditcoin-testnet.blockscout.com/tx/0x322cf5dc365f5b460713a582831b236ca9ad884905f4254e3a477e8954361f33) — 1 tCTC staked, wave 12 reached, 2 tCTC paid. |
 | ⚡ **The protocol is live right now** | `./contracts/script/check-live.sh` — chain id, supported source chains, current attestation height. |
 | ✅ **The contracts pass** | `forge test` — **139 passing**, 95.19% lines, 98.04% functions. |
+
+<img src="docs/images/attestcoin-proof.png" alt="Blockscout log view of the Creditcoin relay transaction: the first log is TransactionVerified, emitted by the BlockProver precompile, with chainKey 1 and Sepolia height 11695759" width="900">
+
+<sub><b>The relay transaction's first log.</b> The emitter is <b>BlockProver</b> — the precompile at
+<code>0x…0FD2</code>, not our contract — carrying <code>chainKey 1</code> and the Sepolia height it
+verified. That is the whole point of the integration: <b>we do not attest anything. The chain does,
+and we refuse to act until it has.</b> The link above is there so you never have to trust this
+image.</sub>
 
 ---
 
@@ -238,11 +262,16 @@ and continuity proofs from the Proof Builder, and submits them. **The ASC verifi
 
 | | | |
 |---|---|---|
-| **1** | **Open the game** | Connect a wallet. It adds and switches to Creditcoin Testnet for you. |
+| **1** | **[Open the game](https://riguwa.xyz)** | Connect a wallet. It adds and switches to Creditcoin Testnet for you. |
 | **2** | **Get some USDT** | One click on the faucet — 1,000 test USDT, rate limited per address. |
 | **3** | **Stake a run** | Pick tCTC or USDT, up to 10. The panel shows your balance, what the pool holds, and the stake it can actually back. |
 | **4** | **Survive** | Waves, bosses every fifth. The monitor watches live and the chain already knows your seed. |
 | **5** | **Get paid** | Die, and the payout lands before you leave the screen — with a Blockscout link. No second signature. |
+
+<img src="docs/images/wallet-connect.jpg" alt="The Reown AppKit modal open over the blurred game menu, listing WalletConnect with a QR code option, Trust Wallet, MetaMask, Binance Wallet, SafePal and a search for 70+ more" width="560">
+
+<sub><b>Step 1.</b> Reown AppKit on top of <code>@wagmi/core</code> — pre-bundled by hand into
+<code>vendor/</code>, because the game has no build step and is not getting one.</sub>
 
 Or skip step 2 entirely: pay on Sepolia and let the precompile prove it.
 
