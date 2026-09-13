@@ -66,7 +66,7 @@ Full table with explorer links in `contracts/DEPLOYMENT.md`.
 | Ethereum Sepolia source chainKey | `1` (**not** `11155111`) |
 | EVM target | `cancun` minus blob opcodes — see `contracts/CLAUDE.md` |
 | Reown AppKit project | `4553a4639c46b13a8f3da08c527a28e5` (riguwa.xyz) |
-| Production domain | `riguwa.xyz` · monitor at `wss://monitor.riguwa.xyz` |
+| Production domain | `riguwa.xyz` (no `www`) · monitor at `wss://monitor.riguwa.xyz` |
 
 ## Things that bit us, so they do not bite you again
 

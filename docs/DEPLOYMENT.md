@@ -35,11 +35,14 @@ established; we just add one more of the same shape.
 Today `riguwa.xyz` points at Hostinger parking (`A @ → 2.57.91.91`). Point it at the VPS and add the
 monitor subdomain.
 
-| Type | Name | Value | TTL |
-| --- | --- | --- | --- |
-| A | `@` | `43.159.63.76` | 300 |
-| A | `monitor` | `43.159.63.76` | 300 |
-| CNAME | `www` | `riguwa.xyz` | 300 (already present) |
+| Action | Type | Name | Value | TTL |
+| --- | --- | --- | --- | --- |
+| **edit** the existing record | A | `@` | `43.159.63.76` | 300 |
+| **add** | A | `monitor` | `43.159.63.76` | 300 |
+| **delete** the existing record | CNAME | `www` | — | — |
+
+No `www`, and no `api` subdomain — the monitor is the only service, and it lives at
+`monitor.riguwa.xyz`.
 
 Wait for propagation before requesting certificates, or certbot's HTTP-01 challenge fails:
 
@@ -50,7 +53,7 @@ dig +short riguwa.xyz monitor.riguwa.xyz
 ## 2. Reown
 
 Project `4553a4639c46b13a8f3da08c527a28e5` must list **every** origin the game is served from:
-`riguwa.xyz`, `www.riguwa.xyz`, and `localhost` for development. Wallets verify `metadata.url`
+`riguwa.xyz` and `localhost` for development. Wallets verify `metadata.url`
 against this list; a missing entry shows up as a failed or untrusted connection.
 
 ## 3. Ship the files
@@ -124,7 +127,7 @@ Check the exact node path first — `readlink -f "$(source ~/.nvm/nvm.sh && nvm 
 server {
     listen 80;
     listen [::]:80;
-    server_name riguwa.xyz www.riguwa.xyz;
+    server_name riguwa.xyz;
     root /var/www/riguwa;
     index index.html;
 
@@ -164,7 +167,7 @@ sudo nginx -t && sudo systemctl reload nginx
 ## 6. TLS
 
 ```bash
-sudo certbot --nginx -d riguwa.xyz -d www.riguwa.xyz -d monitor.riguwa.xyz
+sudo certbot --nginx -d riguwa.xyz -d monitor.riguwa.xyz
 ```
 
 certbot edits **only** the `riguwa` server blocks it is given. Renewal is already installed on this

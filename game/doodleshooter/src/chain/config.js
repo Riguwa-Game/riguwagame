@@ -11,8 +11,8 @@ const DEMO_PROJECT_ID = 'b56e18d47c72ab683b10814fe9495694';
 
 /// Reown AppKit project id for riguwa.xyz.
 /// Wallets verify `metadata.url` against the domains registered on this project, so every domain
-/// the game is served from must be listed at https://dashboard.reown.com - riguwa.xyz,
-/// www.riguwa.xyz, and localhost for development.
+/// the game is served from must be listed at https://dashboard.reown.com - riguwa.xyz
+/// and localhost for development. There is no www.
 /// DEMO_PROJECT_ID below is Reown's public documentation id; it only works on localhost and is
 /// kept solely so the warning underneath can detect it.
 export const REOWN_PROJECT_ID = override.reownProjectId || '4553a4639c46b13a8f3da08c527a28e5';
