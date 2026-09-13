@@ -2,6 +2,8 @@
 
 | File | What it shows | Source |
 | --- | --- | --- |
+| `gameplay.jpg` | Wave 1 of a real staked run | `https://riguwa.xyz` |
+| `stake-panel.jpg` | The staking panel with live balances and pool | `https://riguwa.xyz`, wallet connected |
 | `menu.jpg` | The title screen | `https://riguwa.xyz` |
 | `wallet-connect.jpg` | Reown AppKit modal | `https://riguwa.xyz`, after clicking `#connectBtn` |
 | `verified-contract.png` | ArenaEscrow verified on Blockscout | Blockscout, contract tab |

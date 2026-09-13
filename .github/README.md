@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="game/doodleshooter/public/logo.png" alt="Riguwa — a hand-drawn capital R in heavy black outline with hatched shading" width="128">
+<img src="../game/doodleshooter/public/logo.png" alt="Riguwa — a hand-drawn capital R in heavy black outline with hatched shading" width="128">
 
 # Inkstake Arena
 
@@ -20,14 +20,14 @@ payment on-chain, with no oracle in between.
 [![Track](https://img.shields.io/badge/track-Gaming-8957e5?style=for-the-badge)](https://dorahacks.io/hackathon/buidl-ctc-2026-fall/detail)
 
 **[▶ Play it — riguwa.xyz](https://riguwa.xyz)** ·
-**[Attestcoin Integration](docs/ATTESTCOIN_INTEGRATION.md)** ·
-**[Deployment](contracts/DEPLOYMENT.md)** ·
+**[Attestcoin Integration](../docs/ATTESTCOIN_INTEGRATION.md)** ·
+**[Deployment](../contracts/DEPLOYMENT.md)** ·
 **[Explorer](https://creditcoin-testnet.blockscout.com)** ·
 **[Attestcoin Docs](https://docs.attestcoin.org/)**
 
 <br/>
 
-<img src="docs/images/gameplay.jpg" alt="In-game: a first-person view of a blue ballpoint city drawn on ruled notebook paper, rifle held at the bottom right, HUD showing SCORE 0, WAVE 1, 7 enemies left and 120 HP" width="900">
+<img src="../docs/images/gameplay.jpg" alt="In-game: a first-person view of a blue ballpoint city drawn on ruled notebook paper, rifle held at the bottom right, HUD showing SCORE 0, WAVE 1, 7 enemies left and 120 HP" width="900">
 
 <sub>Wave 1 of a staked run. No models, no textures, no sound files: the paper, the ink outlines, the
 hatching, the enemies and the 8-bit music are all generated in code. The seed for this run came from
@@ -81,7 +81,7 @@ Every contract is **source-verified on Blockscout**. Every claim below has a lin
 | **SeasonRegistry** — per-season leaderboard | [`0xc588f37d…5C732050`](https://creditcoin-testnet.blockscout.com/address/0xc588f37d165dd2B80AD95532aC5a8a975C732050) |
 | **USDT** — mock test stablecoin, 6 dp | [`0x47dcAB80…3cbFA5B1`](https://creditcoin-testnet.blockscout.com/address/0x47dcAB80A108d6048059562AFF7d76aB3cbFA5B1) |
 
-<img src="docs/images/verified-contract.png" alt="Blockscout showing ArenaEscrow with a green &quot;Contract source code verified (exact match)&quot; banner, detected as an EIP-1967 proxy, compiled with solc 0.8.30 targeting the cancun EVM" width="820">
+<img src="../docs/images/verified-contract.png" alt="Blockscout showing ArenaEscrow with a green &quot;Contract source code verified (exact match)&quot; banner, detected as an EIP-1967 proxy, compiled with solc 0.8.30 targeting the cancun EVM" width="820">
 
 <sub><b>ArenaEscrow on Blockscout.</b> Verified exact-match, detected as an EIP-1967 proxy — the
 upgradeable requirement, met and checkable. All four proxies needed
@@ -104,7 +104,7 @@ identical across deployments and forge reports three of them as already verified
 | ⚡ **The protocol is live right now** | `./contracts/script/check-live.sh` — chain id, supported source chains, current attestation height. |
 | ✅ **The contracts pass** | `forge test` — **139 passing**, 95.19% lines, 98.04% functions. |
 
-<img src="docs/images/attestcoin-proof.png" alt="Blockscout log view of the Creditcoin relay transaction: the first log is TransactionVerified, emitted by the BlockProver precompile, with chainKey 1 and Sepolia height 11695759" width="900">
+<img src="../docs/images/attestcoin-proof.png" alt="Blockscout log view of the Creditcoin relay transaction: the first log is TransactionVerified, emitted by the BlockProver precompile, with chainKey 1 and Sepolia height 11695759" width="900">
 
 <sub><b>The relay transaction's first log.</b> The emitter is <b>BlockProver</b> — the precompile at
 <code>0x…0FD2</code>, not our contract — carrying <code>chainKey 1</code> and the Sepolia height it
@@ -271,8 +271,8 @@ and continuity proofs from the Proof Builder, and submits them. **The ASC verifi
 | **4** | **Survive** | Waves, bosses every fifth. The monitor watches live and the chain already knows your seed. |
 | **5** | **Get paid** | Die, and the payout lands before you leave the screen — with a Blockscout link. No second signature. |
 
-<img src="docs/images/wallet-connect.jpg" alt="The Reown AppKit modal open over the blurred game menu, listing WalletConnect with a QR code option, Trust Wallet, MetaMask, Binance Wallet, SafePal and a search for 70+ more" width="470">
-<img src="docs/images/stake-panel.jpg" alt="The staking panel: wallet address, tCTC and USDT balances, a token toggle, a stake amount capped at 10 tCTC, a line reading pool holds 1995 tCTC and backs a stake up to 665, and a PLAY STAKED RUN button" width="470">
+<img src="../docs/images/wallet-connect.jpg" alt="The Reown AppKit modal open over the blurred game menu, listing WalletConnect with a QR code option, Trust Wallet, MetaMask, Binance Wallet, SafePal and a search for 70+ more" width="470">
+<img src="../docs/images/stake-panel.jpg" alt="The staking panel: wallet address, tCTC and USDT balances, a token toggle, a stake amount capped at 10 tCTC, a line reading pool holds 1995 tCTC and backs a stake up to 665, and a PLAY STAKED RUN button" width="470">
 
 <sub><b>Steps 1 and 3.</b> Reown AppKit on top of <code>@wagmi/core</code>, pre-bundled by hand into
 <code>vendor/</code> because the game has no build step and is not getting one. The stake panel shows
@@ -291,7 +291,7 @@ Or skip step 2 entirely: pay on Sepolia and let the precompile prove it.
 | **`contracts/`** | Four UUPS contracts on Creditcoin, one plain contract on Sepolia. Escrow, ASC, season registry, mock stablecoin. | `forge test` — **139 passing**, 95.19% lines |
 | **`server/`** | `ink-monitor`. Run monitor over WebSocket, Attestcoin relayer, EIP-712 signer. | `npm test` — **35 passing** |
 | **`game/doodleshooter/`** | The game. Vanilla ES modules, **no build step**, three.js and Reown AppKit vendored. | `node --test` — **12 passing** |
-| **`docs/`** | Design, implementation plans, and the Attestcoin integration document. | [Integration](docs/ATTESTCOIN_INTEGRATION.md) |
+| **`docs/`** | Design, implementation plans, and the Attestcoin integration document. | [Integration](../docs/ATTESTCOIN_INTEGRATION.md) |
 
 ---
 
@@ -342,7 +342,7 @@ Everything runs against **Creditcoin Testnet 102031** (`https://rpc.cc3-testnet.
 
 ### 🎮 `game/doodleshooter/` — the game
 
-<img src="docs/images/menu.jpg" alt="The title screen: a ballpoint-blue menu panel over the hand-drawn city, with the control list for mouse and keyboard and for a PS5 controller" width="820">
+<img src="../docs/images/menu.jpg" alt="The title screen: a ballpoint-blue menu panel over the hand-drawn city, with the control list for mouse and keyboard and for a PS5 controller" width="820">
 
 <sub>The menu is plain DOM drawn in the same pen style over the canvas, and every size in it is
 <code>clamp()</code>ed against viewport height so the panel scales instead of spilling off the page.</sub>
@@ -406,7 +406,7 @@ cd server && npm run check:attestcoin            # drive the SDK against the liv
 
 **Built for [BUIDL CTC 2026 Fall](https://dorahacks.io/hackathon/buidl-ctc-2026-fall/detail)** · Gaming track
 
-[Attestcoin Integration](docs/ATTESTCOIN_INTEGRATION.md) · [Deployment](contracts/DEPLOYMENT.md) ·
+[Attestcoin Integration](../docs/ATTESTCOIN_INTEGRATION.md) · [Deployment](../contracts/DEPLOYMENT.md) ·
 [Explorer](https://creditcoin-testnet.blockscout.com) · [Attestcoin Docs](https://docs.attestcoin.org/)
 
 <sub>Testnet only. <code>USDT</code> here is a project-issued mock with no value and no affiliation with Tether.</sub>
